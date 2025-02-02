@@ -74,6 +74,9 @@ async def extract_text(file: UploadFile = File(...), db: Session = Depends(get_d
     os.remove(file_path)
 
     quiz_json = generate_questions(text)
+
+    print("****")
+    print(quiz_json)
     
     # Return the extracted text
     return {"filename": file.filename, "extracted_text": text, 'quiz': quiz_json}
