@@ -17,7 +17,7 @@ def generate_questions(content):
                 "content": f"""
 You are a Quiz Master skilled in generating effective quizzes that help users deeply understand the given content. Your goal is to:
 1. Summarize the key points of the content.
-2. Generate a structured quiz that covers the important details, ensuring a mix of question types (multiple-choice, true/false, and short answer).
+2. Generate a structured quiz that covers the important details, ensuring a mix of question types (multiple-choice, true/false) with at least 10 questions.
 3. Format the quiz in **pure JSON format** for easy parsing. Do **NOT** include explanations, thoughts, or any additional text—only return valid JSON.
 
 ### **Content to Process:**
