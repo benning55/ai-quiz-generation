@@ -19,6 +19,7 @@ import { auth } from "../firebase"; // Firebase auth setup
 import { LogoTicker2 } from "@/sections/LogoTicker2";
 import emailjs from "emailjs-com";
 import QuizPage from "@/sections/QuizPage";
+import ScheduleSection from "@/sections/ScheduleSection";
 
 // const db = getFirestore()
 
@@ -71,7 +72,8 @@ export default function Home() {
   return (
     <>
       <Header2 />
-      <QuizPage />
+      {/* <QuizPage /> */}
+      <ScheduleSection />
       {/* <Hero2 /> */}
       {/* <Hero /> */}
       {/* <LogoTicker /> */}

@@ -1,36 +1,70 @@
-from fastapi import FastAPI, UploadFile, File, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException, UploadFile, File, Body
 from sqlalchemy.orm import Session
 from .db import SessionLocal, engine
 from . import models
-from .groq_client import generate_questions
+from .groq_client import generate_questions, generate_schedule
 import os
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+import json
 
-# Import the FastAPI app from __init__.py
+# Import the FastAPI app
 from . import app
 
-# Dependency to get the database session
+# Database dependency
 def get_db():
-    db = SessionLocal()  # Create a new database session
+    db = SessionLocal()
     try:
-        yield db  # This will yield a database session to be used in the route
+        yield db
     finally:
-        db.close()  # Ensure that the session is closed after use
+        db.close()
 
-# Extract text from PDF
+# Google Calendar setup
+SCOPES = ['https://www.googleapis.com/auth/calendar']
+CREDENTIALS_FILE = 'credentials.json'  # Download from Google Cloud Console
+
+def get_google_calendar_service():
+    creds = None
+    token_path = os.path.abspath('token.json')
+    creds_path = os.path.abspath(CREDENTIALS_FILE)
+    print(f"Checking token at: {token_path}")
+    print(f"Credentials file at: {creds_path}")
+
+    if os.path.exists(token_path):
+        try:
+            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+            print(f"Loaded credentials from {token_path}")
+        except ValueError as e:
+            print(f"Invalid token.json: {str(e)}. Regenerating...")
+            creds = None
+
+    if not creds or not creds.valid:
+        if not os.path.exists(creds_path):
+            raise FileNotFoundError(f"Credentials file not found at {creds_path}")
+        flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
+        # Use fixed port 8080
+        print("Starting OAuth flow with port 8080...")
+        creds = flow.run_local_server(port=8080, open_browser=True)
+        with open(token_path, 'w') as token:
+            token.write(creds.to_json())
+        print(f"Saved new token to {token_path}")
+
+    return build('calendar', 'v3', credentials=creds)
+
+# Existing file extraction functions
 def extract_text_from_pdf(file_path):
-    import fitz  # PyMuPDF for PDFs
+    import fitz
     doc = fitz.open(file_path)
     return "\n".join([page.get_text() for page in doc])
 
-# Extract text from Word
 def extract_text_from_word(file_path):
-    import docx  # python-docx for Word
+    import docx
     doc = docx.Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-# Extract text from PowerPoint
 def extract_text_from_ppt(file_path):
-    import pptx  # python-pptx for PowerPoint
+    import pptx
     prs = pptx.Presentation(file_path)
     text = []
     for slide in prs.slides:
@@ -39,9 +73,8 @@ def extract_text_from_ppt(file_path):
                 text.append(shape.text)
     return "\n".join(text)
 
-# General extractor for other formats
 def extract_text_generic(file_path):
-    import textract  # For various formats
+    import textract
     try:
         return textract.process(file_path).decode("utf-8")
     except Exception as e:
@@ -52,11 +85,9 @@ async def extract_text(file: UploadFile = File(...), db: Session = Depends(get_d
     file_ext = file.filename.split(".")[-1].lower()
     file_path = f"temp.{file_ext}"
 
-    # Save uploaded file temporarily
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Extract text based on file type
     if file_ext == "pdf":
         text = extract_text_from_pdf(file_path)
     elif file_ext in ["doc", "docx"]:
@@ -66,31 +97,85 @@ async def extract_text(file: UploadFile = File(...), db: Session = Depends(get_d
     else:
         text = extract_text_generic(file_path)
 
-    # Optionally, save the document to the database
     db.add(models.Document(name=file.filename, content=text))
     db.commit()
 
-    # Clean up the temporary file
-    os.remove(file_path)
-
     quiz_json = generate_questions(text)
-
-    print("****")
-    print(quiz_json)
     
-    # Return the extracted text
+    os.remove(file_path)
+    
     return {"filename": file.filename, "extracted_text": text, 'quiz': quiz_json}
 
 @app.get("/")
 async def hello(request: Request):
-    # Access information from the request object
-    client_ip = request.client.host  # Get client IP address
-    headers = request.headers  # Access headers
-    
-    # You can also access query parameters, cookies, etc.
-    
+    client_ip = request.client.host
+    headers = request.headers
     return {
         "message": "Hello",
         "client_ip": client_ip,
         "headers": dict(headers)
     }
+
+@app.post("/generate-schedule/")
+async def generate_schedule_endpoint(data: dict = Body(...), db: Session = Depends(get_db)):
+    """
+    Endpoint to receive tasks data from frontend, generate a schedule via Groq AI,
+    and book events on Google Calendar for Vancouver (America/Vancouver time zone).
+    Expects JSON body with wakeTime, sleepTime, baseTasks, and extraTasks.
+    """
+    # Validate input data
+    required_fields = ["wakeTime", "sleepTime", "baseTasks", "extraTasks"]
+    if not all(field in data for field in required_fields):
+        raise HTTPException(status_code=400, detail="Missing required fields: wakeTime, sleepTime, baseTasks, extraTasks")
+    
+    print("LETS TRY!!")
+
+    # Call Groq AI to generate the schedule (dynamic Sunday-Saturday)
+    schedule_response = generate_schedule(data)
+
+    print("****")
+    print(schedule_response)
+    
+    if "error" in schedule_response:
+        raise HTTPException(status_code=500, detail=schedule_response["error"])
+    
+    # Extract the schedule
+    events = schedule_response.get("schedule", [])
+    # events = []
+    if not events:
+        raise HTTPException(status_code=500, detail="No schedule generated by AI")
+
+    # Integrate with Google Calendar
+    print("Try google calendar")
+    try:
+        service = get_google_calendar_service()
+        calendar_id = 'primary'  # Use primary calendar
+        
+        created_events = []
+        for event in events:
+            event_body = {
+                'summary': event['summary'],
+                'start': {
+                    'dateTime': event['start'],
+                    'timeZone': 'America/Vancouver'  # Vancouver time zone
+                },
+                'end': {
+                    'dateTime': event['end'],
+                    'timeZone': 'America/Vancouver'  # Vancouver time zone
+                },
+                'description': event.get('description', 'Generated by Scheduler App - Vancouver'),
+            }
+            created_event = service.events().insert(calendarId=calendar_id, body=event_body).execute()
+            created_events.append(created_event['id'])
+        
+        # Optionally store in database
+        db.add(models.Document(name="Generated Schedule", content=json.dumps(events)))
+        db.commit()
+
+        return {
+            "message": "Schedule created successfully for Vancouver",
+            "event_ids": created_events,
+            "schedule": events
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to book events on Google Calendar: {str(e)}")
