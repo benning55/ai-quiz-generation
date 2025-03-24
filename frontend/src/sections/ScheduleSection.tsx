@@ -7,23 +7,27 @@ import { Label } from "@/components/ui/label"
 import { Plus, Clock, Calendar, Loader2 } from "lucide-react"
 import axios from "axios"
 
-// Base task type
+// Base task type (updated with optional deadline)
 interface BaseTask {
   name: string
   days: string[]
   time: string
   duration: number
   travel?: number
+  maxSessionLength?: number
+  deadline?: string // Optional: e.g., "2025-03-26"
 }
 
-// Extra task type
+// Extra task type (updated with optional deadline)
 interface ExtraTask {
   name: string
   frequency: number
   duration: number
+  maxSessionLength?: number
+  deadline?: string // Optional: e.g., "2025-03-26"
 }
 
-// Pre-populated base tasks (your recurring tasks)
+// Pre-populated base tasks with some example deadlines
 const initialBaseTasks: BaseTask[] = [
   {
     name: "Part-Time Job",
@@ -31,6 +35,7 @@ const initialBaseTasks: BaseTask[] = [
     time: "09:30 - 18:00",
     duration: 8.5,
     travel: 3,
+    maxSessionLength: 8.5,
   },
   {
     name: "Class - Project1",
@@ -38,6 +43,7 @@ const initialBaseTasks: BaseTask[] = [
     time: "10:00 - 12:00",
     duration: 2,
     travel: 3,
+    maxSessionLength: 2,
   },
   {
     name: "Class - Digital Forensics",
@@ -45,12 +51,41 @@ const initialBaseTasks: BaseTask[] = [
     time: "15:00 - 18:00",
     duration: 3,
     travel: 3,
+    maxSessionLength: 3,
   },
-  { name: "Software Job - Domonit", days: [], time: "", duration: 10 },
-  { name: "Software Job - Cookly", days: [], time: "", duration: 10 },
-  { name: "Fitness - Weight Lifting", days: [], time: "", duration: 3 },
-  { name: "Study Azure AZ-900", days: [], time: "", duration: 8 }, // Added Azure study
-  { name: "Study class material/homework", days: [], time: "", duration: 6 }, // Added general study
+  {
+    name: "Software Job - Domonit",
+    days: [],
+    time: "",
+    duration: 10,
+  },
+  {
+    name: "Software Job - Cookly",
+    days: [],
+    time: "",
+    duration: 10,
+  },
+  {
+    name: "Fitness - Weight Lifting",
+    days: [],
+    time: "",
+    duration: 3,
+    maxSessionLength: 1,
+  },
+  {
+    name: "Study Azure AZ-900",
+    days: [],
+    time: "",
+    duration: 8,
+    maxSessionLength: 3,
+  },
+  {
+    name: "Study class material/homework",
+    days: [],
+    time: "",
+    duration: 6,
+    maxSessionLength: 3,
+  },
 ]
 
 export default function ScheduleInputForm() {
@@ -59,6 +94,8 @@ export default function ScheduleInputForm() {
   const [extraTaskName, setExtraTaskName] = useState("")
   const [extraTaskFrequency, setExtraTaskFrequency] = useState("1")
   const [extraTaskDuration, setExtraTaskDuration] = useState("")
+  const [extraTaskMaxSessionLength, setExtraTaskMaxSessionLength] = useState("")
+  const [extraTaskDeadline, setExtraTaskDeadline] = useState("") // New state for deadline
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,11 +106,17 @@ export default function ScheduleInputForm() {
       name: extraTaskName,
       frequency: parseInt(extraTaskFrequency),
       duration: parseFloat(extraTaskDuration),
+      maxSessionLength: extraTaskMaxSessionLength
+        ? parseFloat(extraTaskMaxSessionLength)
+        : undefined,
+      deadline: extraTaskDeadline || undefined, // Include deadline if provided
     }
     setExtraTasks([...extraTasks, newTask])
     setExtraTaskName("")
     setExtraTaskFrequency("1")
     setExtraTaskDuration("")
+    setExtraTaskMaxSessionLength("")
+    setExtraTaskDeadline("") // Reset deadline input
   }
 
   const generateSchedule = async () => {
@@ -98,7 +141,7 @@ export default function ScheduleInputForm() {
       )
       console.log("Schedule created:", response.data)
       setSubmitSuccess(true)
-      setTimeout(() => setSubmitSuccess(false), 3000) // Show success for 3 seconds
+      setTimeout(() => setSubmitSuccess(false), 3000)
     } catch (err) {
       const errorMessage =
         err.response?.data?.detail ||
@@ -147,6 +190,10 @@ export default function ScheduleInputForm() {
                       <p className='text-sm flex items-center'>
                         <Clock className='w-4 h-4 mr-1' />
                         {task.duration}h/week
+                        {task.maxSessionLength
+                          ? ` | Max ${task.maxSessionLength}h/session`
+                          : ""}
+                        {task.deadline ? ` | Due: ${task.deadline}` : ""}
                       </p>
                     </div>
                   </div>
@@ -216,6 +263,44 @@ export default function ScheduleInputForm() {
                       min='0.5'
                     />
                   </div>
+                  <div>
+                    <Label
+                      htmlFor='extraTaskMaxSessionLength'
+                      className='text-sm font-medium text-blue-900'
+                    >
+                      <Clock className='w-4 h-4 inline mr-1' />
+                      Max Session Length (hours, optional)
+                    </Label>
+                    <Input
+                      id='extraTaskMaxSessionLength'
+                      type='number'
+                      value={extraTaskMaxSessionLength}
+                      onChange={(e) =>
+                        setExtraTaskMaxSessionLength(e.target.value)
+                      }
+                      className='mt-1 border-blue-100 focus:border-blue-200 focus:ring-blue-200'
+                      step='0.5'
+                      min='0.5'
+                      placeholder='Leave blank for default'
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor='extraTaskDeadline'
+                      className='text-sm font-medium text-blue-900'
+                    >
+                      <Calendar className='w-4 h-4 inline mr-1' />
+                      Deadline (YYYY-MM-DD, optional)
+                    </Label>
+                    <Input
+                      id='extraTaskDeadline'
+                      type='date' // Use date picker for better UX
+                      value={extraTaskDeadline}
+                      onChange={(e) => setExtraTaskDeadline(e.target.value)}
+                      className='mt-1 border-blue-100 focus:border-blue-200 focus:ring-blue-200'
+                      placeholder='e.g., 2025-03-26'
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -247,6 +332,10 @@ export default function ScheduleInputForm() {
                     >
                       <p className='text-blue-900'>
                         {task.name} | {task.frequency}x/week | {task.duration}h
+                        {task.maxSessionLength
+                          ? ` | Max ${task.maxSessionLength}h/session`
+                          : ""}
+                        {task.deadline ? ` | Due: ${task.deadline}` : ""}
                       </p>
                     </motion.div>
                   ))}

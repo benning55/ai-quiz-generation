@@ -4,6 +4,7 @@ import os
 import re
 from groq import Groq
 from datetime import datetime, timedelta
+import pytz
 
 client = Groq(
     api_key=os.environ.get("GROQ_API_KEY","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"),
@@ -72,18 +73,68 @@ Ensure all generated questions align with the content and test conceptual unders
             return {"error": "Failed to parse AI-generated JSON."}
     else:
         return {"error": "No valid JSON found in AI response."}
-    
+
+
+# test = f"""
+# You are a **Schedule Planner Expert**. Your goal is to:
+# 1. Take the provided tasks data (wake/sleep times, travel time, deadlines, maxSessionLength, base tasks, extra tasks).
+# 2. Generate a **weekly schedule (Sunday to Saturday)** optimized for productivity using cognitive science principles:
+#    - Mornings (7:30–12:00) for deep cognitive work (e.g., software jobs, study).
+#    - Afternoons (12:00–18:00) for routine or sustained tasks (e.g., classes, jobs).
+#    - Evenings (18:00–00:00) for lighter or creative tasks.
+# 3. **Return output in pure JSON** (no Markdown) formatted for Google Calendar API (ISO format timestamps).
+# 4. **Ensure no tasks overlap in the schedule** by assigning each task a unique time slot without conflicts.
+
+# ### **Input Data:**
+# \"\"\" 
+# {json.dumps(tasks_data, indent=2)} 
+# \"\"\"
+
+# ### **Week Range:**
+# - Start: {week_start_str} (Sunday)
+# - End: {week_end_str} (Saturday)
+
+# ### **Expected Output Format (JSON)**
+# {{
+#   "schedule": [
+#     {{
+#       "summary": "Task name",
+#       "start": "{week_start_str}T09:30:00{time_zone}",
+#       "end": "{week_start_str}T18:00:00{time_zone}",
+#       "description": "Optional details"
+#     }},
+#     ...
+#   ]
+# }}
+# - Use the week range {week_start_str} to {week_end_str}.
+# - Time zone: Pacific Time (-07:00), format YYYY-MM-DDTHH:MM:SS-07:00
+# - Priority: Deadline tasks first → Fixed tasks → Flexible tasks
+# - **Re-check JSON again to have no overlaps**: respect task dependencies.
+# - Round-trip travel: Split equally before and after the associated task.
+# - Session limits: If a task exceeds maxSessionLength, break it into multiple sessions with reasonable breaks.
+# """
+
+
 def generate_schedule(tasks_data):
     # Get current date and calculate the week's Sunday-to-Saturday range
-    today = datetime.utcnow().date()  # Use UTC as base, adjust to Pacific later
+    today = datetime.now(pytz.timezone('US/Pacific')).date()  # Use UTC as base, adjust to Pacific later
+    print(today)
     # Find the most recent Sunday (start of week)
     days_since_sunday = today.weekday() + 1  # Sunday is 6, Monday is 0, etc.
+    print(days_since_sunday)
     week_start = today - timedelta(days=days_since_sunday % 7)
+    print(week_start)
     week_end = week_start + timedelta(days=6)
+    print(week_end)
 
     # Format dates for prompt
     week_start_str = week_start.strftime("%Y-%m-%d")
     week_end_str = week_end.strftime("%Y-%m-%d")
+
+    wake_time = tasks_data["wakeTime"]
+    sleep_time = tasks_data["sleepTime"]
+
+    time_zone = "-07:00"
 
     completion = client.chat.completions.create(
         model="deepseek-r1-distill-llama-70b",
@@ -92,12 +143,14 @@ def generate_schedule(tasks_data):
                 "role": "user",
                 "content": f"""
 You are a Schedule Planner Expert. Your goal is to:
-1. Take the provided tasks data (wake/sleep times, base tasks, extra tasks).
-2. Generate a weekly schedule from Sunday to Saturday, optimizing for productivity based on scientific principles:
-   - Mornings (8:00–12:00) for deep cognitive work (e.g., software jobs, study).
+1. Take the provided tasks data (wake/sleep times, travel time, deadlines, maxSessionLength, base tasks, extra tasks).
+2. Make sure every input task hours will meet with correction.
+3. Generate a **weekly schedule (Sunday to Saturday)** optimized for productivity using cognitive science principles:
+   - Mornings (7:30–12:00) for deep cognitive work (e.g., software jobs, study).
    - Afternoons (12:00–18:00) for routine or sustained tasks (e.g., classes, jobs).
-   - Evenings (18:00–22:00) for lighter or creative tasks.
-3. Return the schedule in **pure JSON format** with events ready for Google Calendar API (start/end times in ISO format).
+   - Evenings (18:00–00:00) for lighter or creative tasks.
+4. **Return output in pure JSON** (no Markdown) formatted for Google Calendar API (ISO format timestamps).
+5. **Ensure no tasks overlap in the schedule** by assigning each task a unique time slot without conflicts.
 
 ### **Input Data:**
 \"\"\" 
@@ -112,7 +165,7 @@ You are a Schedule Planner Expert. Your goal is to:
 {{
   "schedule": [
     {{
-      "summary": "Task name",
+      "summary": "[Task name (deadline) or Travel],
       "start": "{week_start_str}T09:30:00-07:00",
       "end": "{week_start_str}T18:00:00-07:00",
       "description": "Optional details"
@@ -122,8 +175,6 @@ You are a Schedule Planner Expert. Your goal is to:
 }}
 - Use the week range {week_start_str} to {week_end_str}.
 - Format timestamps in Pacific Time (-07:00) as YYYY-MM-DDTHH:MM:SS-07:00.
-- For base tasks with fixed days (e.g., "Mon"), assign them to the corresponding date in the week.
-- For flexible tasks (e.g., software jobs, extra tasks), distribute them optimally across the week.
 """
             },
         ],
@@ -144,4 +195,93 @@ You are a Schedule Planner Expert. Your goal is to:
             return {"error": "Failed to parse AI-generated JSON."}
     else:
         return {"error": "No valid JSON found in AI response."}
+# def generate_schedule(tasks_data):
+#     # Get current date and calculate the week's Sunday-to-Saturday range
+#     today = datetime.utcnow().date()  # Use UTC as base, adjust to Pacific later
+#     # Find the most recent Sunday (start of week)
+#     days_since_sunday = today.weekday() + 1  # Sunday is 6, Monday is 0, etc.
+#     week_start = today - timedelta(days=days_since_sunday % 7)
+#     week_end = week_start + timedelta(days=6)
+
+#     # Format dates for prompt
+#     week_start_str = week_start.strftime("%Y-%m-%d")
+#     week_end_str = week_end.strftime("%Y-%m-%d")
+
+#     wake_time = tasks_data["wakeTime"]
+#     sleep_time = tasks_data["sleepTime"]
+#     base_tasks = tasks_data["baseTasks"]
+#     extra_tasks = tasks_data["extraTasks"]
+
+#     completion = client.chat.completions.create(
+#         model="deepseek-r1-distill-llama-70b",
+#         messages=[
+#             {
+#                 "role": "user",
+#                 "content": f"""
+# You are an AI Schedule Planner creating a weekly schedule from {week_start_str} to {week_end_str}. Return **only valid JSON** as specified below. Do **NOT** include explanations, <think> tags, or any text outside the JSON structure.
+
+# ### **Input Data:**
+# {json.dumps(tasks_data, indent=2)}
+
+# ### **Instructions:**
+# - Schedule between {wake_time} and {sleep_time}, Pacific Time (-07:00).
+# - `baseTasks`: Fixed if `days` and `time` are non-empty; otherwise flexible.
+# - `extraTasks`: Flexible, prioritize deadlines if present.
+# - Fixed tasks: Use `days` (Sun={week_start_str}, Mon={week_start_str}+1, etc.) and `time`; split `travel` evenly (e.g., 3h → 1.5h before/after).
+# - Flexible tasks: Prioritize evenings (17:00–22:00); use mornings ({wake_time}–12:00) for "Fitness" or if evenings are full; deadlines must be met by date.
+# - Session rules: Respect `maxSessionLength` (default 3h for "Software Job", 1–2h others); split `duration` into sessions.
+# - Priority: Fixed tasks first, then deadline tasks, then flexible tasks. No overlaps.
+
+# ### **Output Format (JSON):**
+# ```json
+# {{
+#   "schedule": [
+#     {{
+#       "summary": "[task name or Travel to/back from name]",
+#       "start": "{week_start_str}T09:30:00-07:00",
+#       "end": "{week_start_str}T18:00:00-07:00",
+#       "description": "Optional (e.g., Fixed task, Deadline 2025-03-26)"
+#     }}
+#   ]
+# }}
+# """
+#             },
+#         ],
+#         temperature=0.5,
+#         max_completion_tokens=8192,
+#         top_p=0.9,
+#         stream=False,
+#         stop=None,
+#     )
+
+#     response_text = completion.choices[0].message.content.strip()
+#     print("DONEE")
+#     print(response_text)
+#     try:
+#       schedule_data = json.loads(response_text)
+#       print("Parsed JSON:")
+#       print(json.dumps(schedule_data, indent=2))
+#       return schedule_data
+#     except json.JSONDecodeError as e:
+#       print(f"JSON Parsing Error: {e}")
+#       json_match = re.search(r"json\s*(.*?)\s*", response_text, re.DOTALL)
+#       if json_match:
+#         json_text = json_match.group(1)
+#         print("Extracted JSON:")
+#         print(json_text)
+#         try:
+#           return json.loads(json_text)
+#         except json.JSONDecodeError:
+#           return {"error": "Failed to parse extracted JSON."}
+#     return {"error": "No valid JSON found in AI response."}
+#     # match = re.search(r"\{.*\}", response_text, re.DOTALL)
+#     # if match:
+#     #     json_text = match.group(0)
+#     #     print(json_text)
+#     #     try:
+#     #         return json.loads(json_text)
+#     #     except json.JSONDecodeError:
+#     #         return {"error": "Failed to parse AI-generated JSON."}
+#     # else:
+#     #     return {"error": "No valid JSON found in AI response."}
 
