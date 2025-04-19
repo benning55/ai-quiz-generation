@@ -6,7 +6,7 @@ import os
 # Get the DATABASE_URL from the environment variables (set in docker-compose.yml)
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql://user:password@localhost:5433/mydatabase"  # Default to docker-compose service name and port
+    "sqlite:///./test.db"  # Default to a local SQLite database
 )
 
 # Create SQLAlchemy engine

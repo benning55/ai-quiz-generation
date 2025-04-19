@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: "export",
+  reactStrictMode: true,
+  output: 'standalone', // For Docker optimization
+  images: {
+    domains: ['upload.wikimedia.org'], // Allow images from Wikipedia
+  },
+  poweredByHeader: false, // Security: remove X-Powered-By header,
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>

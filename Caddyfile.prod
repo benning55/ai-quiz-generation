@@ -1,0 +1,59 @@
+{$DOMAIN_NAME} {
+    # Use automatic HTTPS with Let's Encrypt
+    tls {
+        # Email for Let's Encrypt notifications
+        email admin@{$DOMAIN_NAME}
+    }
+
+    # Enable GZIP compression
+    encode gzip
+
+    # API requests - forward to backend
+    handle /api/* {
+        uri strip_prefix /api
+        reverse_proxy backend:8000 {
+            # Health checks
+            health_path /health
+            health_interval 30s
+            health_timeout 10s
+        }
+    }
+
+    # Static files - directly serve from Caddy for better performance
+    handle /static/* {
+        root * /var/www/static
+        file_server
+    }
+
+    # All other requests - forward to frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # Enable XSS protection
+        X-XSS-Protection "1; mode=block"
+        # Frame options
+        X-Frame-Options "SAMEORIGIN"
+        # Content Security Policy
+        Content-Security-Policy "default-src 'self'; script-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://api.{$DOMAIN_NAME};"
+        # Referrer policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Remove server information
+        -Server
+    }
+
+    # Enable logging
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10MB
+            roll_keep 10
+        }
+        format json
+    }
+} 

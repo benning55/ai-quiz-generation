@@ -10,6 +10,8 @@
     "export": "next export"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.28.2",
+    "@clerk/nextjs": "^6.16.0",
     "@radix-ui/react-progress": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.1",

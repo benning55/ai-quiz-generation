@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What is the capital of Canada?",
+    "answer": "Ottawa",
+    "tags": ["citizenship", "canada", "geography"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "What are the three main parts of Parliament?",
+    "answer": "The Sovereign (King or Queen), the Senate and the House of Commons",
+    "tags": ["citizenship", "canada", "government"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "What is the official language of Quebec?",
+    "answer": "French",
+    "tags": ["citizenship", "canada", "language"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "When did the British North America Act come into effect?",
+    "answer": "July 1, 1867",
+    "tags": ["citizenship", "canada", "history"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "What is the name of the Canadian national anthem?",
+    "answer": "O Canada",
+    "tags": ["citizenship", "canada", "symbols"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "What do you call the Sovereign's representative in the provinces?",
+    "answer": "The Lieutenant-Governor",
+    "tags": ["citizenship", "canada", "government"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "Who was the first Prime Minister of Canada?",
+    "answer": "Sir John A. Macdonald",
+    "tags": ["citizenship", "canada", "history"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "What are the three levels of government in Canada?",
+    "answer": "Federal, provincial/territorial, and municipal",
+    "tags": ["citizenship", "canada", "government"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "How many provinces does Canada have?",
+    "answer": "Ten",
+    "tags": ["citizenship", "canada", "geography"],
+    "category": "canadian_citizenship"
+  },
+  {
+    "question": "Name the five regions of Canada.",
+    "answer": "Atlantic, Central, Prairie, West Coast, and Northern",
+    "tags": ["citizenship", "canada", "geography"],
+    "category": "canadian_citizenship"
+  }
+]

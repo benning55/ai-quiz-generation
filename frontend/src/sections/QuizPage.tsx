@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Loader2, Upload, RefreshCcw } from "lucide-react"
+import { Loader2, CheckCircle, X, RefreshCcw } from "lucide-react"
 
 type QuizQuestion = {
   question: string
@@ -17,57 +17,49 @@ type QuizQuestion = {
 export default function QuizPage() {
   const [quiz, setQuiz] = useState<QuizQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | boolean | null>(
-    null
-  )
+  const [selectedAnswer, setSelectedAnswer] = useState<string | boolean | null>(null)
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null)
   const [score, setScore] = useState(0)
   const [loading, setLoading] = useState(false)
   const [quizCompleted, setQuizCompleted] = useState(false)
-  const [file, setFile] = useState<File | null>(null)
   const [shortAnswer, setShortAnswer] = useState<string>("")
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0])
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!file) return alert("Please select a file first!")
-
-    setLoading(true)
-
-    const formData = new FormData()
-    formData.append("file", file)
+  
+  const handleStartQuiz = async () => {
+    setLoading(true);
 
     try {
       const response = await fetch(
-        "https://backend-production-9417.up.railway.app/extract-text/",
+        `${process.env.NEXT_PUBLIC_API_URL}/generate-quiz-from-flashcards/`,
         {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            count: 10,
+            question_types: ["multiple_choice", "true_false"]
+          }),
         }
-      )
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.quiz && data.quiz.quiz) {
-        setQuiz(data.quiz.quiz)
+        setQuiz(data.quiz.quiz);
       } else {
-        alert("Invalid quiz response format.")
+        alert("Couldn't load quiz questions. Please try again.");
       }
 
-      setCurrentIndex(0)
-      setScore(0)
-      setQuizCompleted(false)
+      setCurrentIndex(0);
+      setScore(0);
+      setQuizCompleted(false);
     } catch (error) {
-      console.error("Error uploading file:", error)
-      alert("Failed to upload file and generate quiz.")
+      console.error("Error generating quiz:", error);
+      alert("Failed to generate quiz. Please try again later.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleShortAnswer = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -97,43 +89,48 @@ export default function QuizPage() {
 
   const handleRestart = () => {
     setQuiz([])
-    setFile(null)
     setCurrentIndex(0)
     setScore(0)
     setFeedback(null)
     setSelectedAnswer(null)
     setQuizCompleted(false)
+    setShortAnswer("")
   }
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6'>
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-red-50 to-white text-gray-800 p-6'>
       {quiz.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className='flex flex-col items-center space-y-6'
+          className='flex flex-col items-center space-y-6 bg-white p-8 rounded-xl shadow-lg max-w-xl w-full text-center'
         >
-          <h2 className='text-2xl font-bold'>
-            Upload a File to Generate a Quiz
+          <h2 className='text-3xl font-bold text-center text-red-700 mb-2'>
+            Canadian Citizenship Test Practice
           </h2>
-          <input
-            type='file'
-            accept='.pdf,.doc,.docx,.ppt,.pptx'
-            onChange={handleFileChange}
-            className='file:bg-indigo-600 file:text-white file:px-4 file:py-2 file:border-none file:rounded-lg cursor-pointer bg-gray-700 text-white px-4 py-2 rounded-lg'
+          
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Canada_%28Pantone%29.svg" 
+            alt="Canadian Flag" 
+            className='w-24 h-auto my-4'
           />
+          
+          <p className='text-center text-gray-600 mb-6'>
+            Test your knowledge of Canadian history, geography, government, and culture with our practice citizenship test.
+          </p>
+          
           <Button
-            onClick={handleUpload}
-            disabled={!file || loading}
-            className='bg-indigo-500 hover:bg-indigo-600 px-6 py-3 rounded-lg flex items-center gap-2'
+            onClick={handleStartQuiz}
+            disabled={loading}
+            className='bg-red-700 hover:bg-red-800 text-white px-8 py-4 text-lg rounded-lg flex items-center gap-2 w-full max-w-xs'
           >
             {loading ? (
               <Loader2 className='animate-spin' />
             ) : (
-              <Upload size={18} />
+              <CheckCircle size={22} />
             )}{" "}
-            Upload & Generate Quiz
+            Start Test
           </Button>
         </motion.div>
       ) : quizCompleted ? (
@@ -141,23 +138,30 @@ export default function QuizPage() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className='text-center w-full max-w-2xl'
+          className='text-center w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg'
         >
-          <h2 className='text-3xl font-bold mb-4'>🎉 Quiz Completed! 🎉</h2>
-          <p className='text-xl mb-6'>
-            Your Score: {score} / {quiz.length}
-          </p>
+          <div className='mb-6 flex flex-col items-center'>
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Canada_%28Pantone%29.svg" 
+              alt="Canadian Flag" 
+              className='w-16 h-auto mb-4'
+            />
+            <h2 className='text-3xl font-bold mb-4 text-red-700'>Practice Completed!</h2>
+            <p className='text-xl mb-6'>
+              Your Score: <span className='font-bold'>{score}</span> / <span>{quiz.length}</span>
+            </p>
+          </div>
           <div className='mb-6'>
-            <h3 className='text-2xl font-bold mb-4'>Review Your Answers</h3>
+            <h3 className='text-2xl font-bold mb-4 text-gray-800'>Review Your Answers</h3>
             {quiz.map((question, index) => (
-              <Card key={index} className='bg-white p-4 rounded-lg mb-4'>
-                <CardContent>
-                  <h4 className='text-lg font-semibold mb-2'>
+              <Card key={index} className='bg-white border border-gray-200 p-4 rounded-lg mb-4 shadow-sm'>
+                <CardContent className='p-2'>
+                  <h4 className='text-lg font-semibold mb-2 text-gray-800'>
                     {question.question}
                   </h4>
-                  <p className='text-sm text-gray-400'>
+                  <p className='text-sm text-gray-600'>
                     Correct Answer:{" "}
-                    <span className='text-green-400'>
+                    <span className='text-green-600 font-medium'>
                       {question.type === "true_false"
                         ? question.answer.toString()
                         : question.answer}
@@ -169,9 +173,9 @@ export default function QuizPage() {
           </div>
           <Button
             onClick={handleRestart}
-            className='bg-indigo-500 hover:bg-indigo-600 px-6 py-3 rounded-lg flex items-center gap-2'
+            className='bg-red-700 hover:bg-red-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto'
           >
-            <RefreshCcw size={18} /> Restart Quiz
+            <RefreshCcw size={18} /> Try Another Quiz
           </Button>
         </motion.div>
       ) : (
@@ -181,16 +185,23 @@ export default function QuizPage() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.5 }}
-          className='w-full max-w-2xl'
+          className='w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg'
         >
+          <div className='flex justify-between items-center mb-6'>
+            <h3 className='text-lg font-medium text-gray-600'>Question {currentIndex + 1} of {quiz.length}</h3>
+            <span className='text-sm font-medium px-3 py-1 bg-red-100 text-red-700 rounded-full'>
+              Score: {score}
+            </span>
+          </div>
+          
           <Progress
             value={((currentIndex + 1) / quiz.length) * 100}
-            className='w-full mb-4 h-3 bg-gray-700'
+            className='w-full mb-6 h-2 bg-gray-200'
           />
 
-          <Card className='bg-white p-6 rounded-xl shadow-lg'>
-            <CardContent>
-              <h2 className='text-2xl font-bold mb-6'>
+          <Card className='bg-white border border-gray-200 p-6 rounded-xl shadow-sm mb-6'>
+            <CardContent className='p-2'>
+              <h2 className='text-xl font-bold mb-6 text-gray-800'>
                 {quiz[currentIndex].question}
               </h2>
 
@@ -198,13 +209,13 @@ export default function QuizPage() {
                 quiz[currentIndex].options?.map((option, index) => (
                   <motion.button
                     key={index}
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`w-full text-left px-4 py-3 rounded-lg mb-2 transition-all ${
                       selectedAnswer === option
                         ? feedback === "correct"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                        : "bg-yellow-500 hover:bg-yellow-600"
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-800"
                     }`}
                     onClick={() => handleAnswer(option)}
                   >
@@ -215,26 +226,26 @@ export default function QuizPage() {
               {quiz[currentIndex].type === "true_false" && (
                 <div className='flex space-x-4'>
                   <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`w-1/2 px-4 py-3 rounded-lg ${
                       selectedAnswer === true
                         ? feedback === "correct"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                        : "bg-yellow-500 hover:bg-yellow-600"
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-800"
                     }`}
                     onClick={() => handleAnswer(true)}
                   >
                     True
                   </motion.button>
                   <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`w-1/2 px-4 py-3 rounded-lg ${
                       selectedAnswer === false
                         ? feedback === "correct"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                        : "bg-yellow-500 hover:bg-yellow-600"
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-800"
                     }`}
                     onClick={() => handleAnswer(false)}
                   >
@@ -250,7 +261,7 @@ export default function QuizPage() {
                   value={shortAnswer}
                   onChange={(e) => setShortAnswer(e.target.value)}
                   onKeyDown={handleShortAnswer}
-                  className='w-full px-4 py-3 rounded-lg bg-yellow-500 text-white focus:outline-none focus:ring focus:ring-indigo-400 mt-4'
+                  className='w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
                 />
               )}
 
@@ -258,11 +269,21 @@ export default function QuizPage() {
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className={`mt-4 text-lg font-semibold ${
-                    feedback === "correct" ? "text-green-400" : "text-red-400"
+                  className={`mt-4 text-lg font-semibold flex items-center ${
+                    feedback === "correct" ? "text-green-600" : "text-red-600"
                   }`}
                 >
-                  {feedback === "correct" ? "✅ Correct!" : "❌ Wrong Answer!"}
+                  {feedback === "correct" ? (
+                    <>
+                      <CheckCircle className="mr-2" size={20} />
+                      Correct!
+                    </>
+                  ) : (
+                    <>
+                      <X className="mr-2" size={20} />
+                      Incorrect
+                    </>
+                  )}
                 </motion.div>
               )}
             </CardContent>

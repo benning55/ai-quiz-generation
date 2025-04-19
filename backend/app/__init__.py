@@ -9,12 +9,14 @@ def create_app():
     """
     # Create FastAPI app instance
     app = FastAPI(title="Document Text Extraction API")
+    
+    # Simple CORS configuration - allow all origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Allows all origins (update this to restrict domains)
+        allow_origins=["*"],     # Allow all origins
         allow_credentials=True,
-        allow_methods=["*"],  # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
-        allow_headers=["*"],  # Allows all headers
+        allow_methods=["*"],     # Allow all methods
+        allow_headers=["*"],     # Allow all headers
     )
 
     # Create tables in the database if they don't exist (using the engine and Base)
