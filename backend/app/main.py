@@ -416,10 +416,8 @@ async def generate_quiz_from_flashcards(
         # Determine question count based on user status
         if not is_authenticated:
             question_count = 3  # Free tier
-        elif active_payment:
-            question_count = request.count  # Full access
         else:
-            question_count = min(request.count, 3)  # Logged in but not paid
+            question_count = request.count  # Logged in users get requested count (10)
             
         # Build query based on request parameters
         query = db.query(models.Flashcard)

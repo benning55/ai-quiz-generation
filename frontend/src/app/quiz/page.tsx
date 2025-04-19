@@ -73,14 +73,9 @@ export default function QuizPage() {
 
       // Add auth token if user is signed in
       if (userId) {
-        try {
-          const token = await getToken();
-          if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-            console.log('Auth token added to headers:', token); // Debug log
-          }
-        } catch (error) {
-          console.error("Error getting token:", error);
+        const token = await getToken();
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
       }
       
@@ -88,22 +83,17 @@ export default function QuizPage() {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          count: userId ? 10 : 3, // 10 questions for logged-in users, 3 for guests
+          count: userId ? 10 : 3,
           question_types: ["multiple_choice", "true_false"]
         }),
       });
 
       const data = await response.json();
-      console.log('Quiz data received:', data); // Debug log
-      console.log('User ID:', userId); // Debug log
-      console.log('Headers sent:', headers); // Debug log
       
       if (data.questions && data.questions.quiz && Array.isArray(data.questions.quiz)) {
-        // Only filter out short_answer questions, keep multiple_choice and true_false
         const filteredQuiz = data.questions.quiz.filter(
           (question: QuizQuestion) => question.type !== "short_answer"
         );
-        console.log('Filtered quiz:', filteredQuiz); // Debug log
         setQuiz(filteredQuiz);
         setUserStatus(data.user_status || { has_active_payment: false });
         setIsSignedIn(!!userId);
