@@ -10,8 +10,8 @@ export const Header = () => {
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
 
-  // Check if on quiz page
-  const isQuizPage = pathname.startsWith('/quiz')
+  // Check if on home page
+  const isHomePage = pathname === '/'
 
   // Close mobile menu when changing routes
   useEffect(() => {
@@ -72,7 +72,7 @@ export const Header = () => {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-        scrolled || isQuizPage
+        scrolled || !isHomePage
           ? "bg-white/95 text-gray-800 shadow-lg backdrop-blur-md py-2" 
           : "bg-transparent text-white py-4"
       }`}
@@ -102,17 +102,17 @@ export const Header = () => {
                   alt="Canadian Flag"
                   height={40}
                   width={40}
-                  className={`${scrolled || isQuizPage ? "brightness-75 saturate-150" : "brightness-100"}`}
+                  className={`${scrolled || !isHomePage ? "brightness-75 saturate-150" : "brightness-100"}`}
                 />
               </motion.div>
               <div className="text-xl font-bold flex items-baseline">
-                <span className={`font-extrabold ${scrolled || isQuizPage ? "text-red-600" : "text-white"}`}>
+                <span className={`font-extrabold ${scrolled || !isHomePage ? "text-red-600" : "text-white"}`}>
                   Can
                 </span>
-                <span className={`font-semibold ${scrolled || isQuizPage ? "text-gray-700" : "text-gray-100"}`}>
+                <span className={`font-semibold ${scrolled || !isHomePage ? "text-gray-700" : "text-gray-100"}`}>
                   Citizen
                 </span>
-                <span className={`font-bold ${scrolled || isQuizPage ? "text-red-600" : "text-yellow-300"}`}>
+                <span className={`font-bold ${scrolled || !isHomePage ? "text-red-600" : "text-yellow-300"}`}>
                   Test
                 </span>
               </div>
@@ -140,10 +140,10 @@ export const Header = () => {
                     href={link.href}
                     className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       pathname === link.href 
-                        ? scrolled || isQuizPage
+                        ? scrolled || !isHomePage
                           ? "text-red-600" 
                           : "text-yellow-300" 
-                        : scrolled || isQuizPage
+                        : scrolled || !isHomePage
                           ? "text-gray-700 hover:text-red-600" 
                           : "text-white/90 hover:text-white"
                     }`}
@@ -152,7 +152,7 @@ export const Header = () => {
                       <motion.span
                         layoutId="navbar-indicator"
                         className={`absolute inset-0 rounded-full -z-10 ${
-                          scrolled || isQuizPage ? "bg-red-50" : "bg-white/10"
+                          scrolled || !isHomePage ? "bg-red-50" : "bg-white/10"
                         }`}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
@@ -168,10 +168,10 @@ export const Header = () => {
                     href="/admin" 
                     className={`px-4 py-2 rounded-full text-sm font-medium ${
                       pathname === "/admin" 
-                        ? scrolled || isQuizPage
+                        ? scrolled || !isHomePage
                           ? "text-red-600" 
                           : "text-yellow-300" 
-                        : scrolled || isQuizPage
+                        : scrolled || !isHomePage
                           ? "text-gray-700 hover:text-red-600" 
                           : "text-white/90 hover:text-white"
                     }`}
@@ -180,7 +180,7 @@ export const Header = () => {
                       <motion.span
                         layoutId="navbar-indicator"
                         className={`absolute inset-0 rounded-full -z-10 ${
-                          scrolled || isQuizPage ? "bg-red-50" : "bg-white/10"
+                          scrolled || !isHomePage ? "bg-red-50" : "bg-white/10"
                         }`}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
@@ -226,7 +226,7 @@ export const Header = () => {
                 <Link 
                   href="/sign-in" 
                   className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    scrolled || isQuizPage
+                    scrolled || !isHomePage
                       ? "text-gray-700 hover:text-red-600" 
                       : "text-white/90 hover:text-white"
                   }`}
@@ -246,7 +246,7 @@ export const Header = () => {
                 <Link 
                   href="/sign-up" 
                   className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                    scrolled || isQuizPage
+                    scrolled || !isHomePage
                       ? "bg-red-600 text-white hover:bg-red-700" 
                       : "bg-white text-red-600 hover:bg-yellow-50"
                   }`}
@@ -267,7 +267,7 @@ export const Header = () => {
             <motion.div
               animate={isMenuOpen ? "open" : "closed"}
               className={`w-6 h-6 flex flex-col justify-center items-center ${
-                (scrolled || isQuizPage) && !isMenuOpen ? "text-gray-800" : "text-white"
+                (scrolled || !isHomePage) && !isMenuOpen ? "text-gray-800" : "text-white"
               }`}
             >
               <motion.span
@@ -276,7 +276,7 @@ export const Header = () => {
                   open: { rotate: 45, y: 2 }
                 }}
                 className={`block h-0.5 w-5 mb-1 ${
-                  isMenuOpen || (!scrolled && !isQuizPage) ? "bg-white" : "bg-gray-800"
+                  isMenuOpen || (!scrolled && isHomePage) ? "bg-white" : "bg-gray-800"
                 }`}
               />
               <motion.span
@@ -285,7 +285,7 @@ export const Header = () => {
                   open: { opacity: 0 }
                 }}
                 className={`block h-0.5 w-5 mb-1 ${
-                  isMenuOpen || (!scrolled && !isQuizPage) ? "bg-white" : "bg-gray-800"
+                  isMenuOpen || (!scrolled && isHomePage) ? "bg-white" : "bg-gray-800"
                 }`}
               />
               <motion.span
@@ -294,7 +294,7 @@ export const Header = () => {
                   open: { rotate: -45, y: -2 }
                 }}
                 className={`block h-0.5 w-5 ${
-                  isMenuOpen || (!scrolled && !isQuizPage) ? "bg-white" : "bg-gray-800"
+                  isMenuOpen || (!scrolled && isHomePage) ? "bg-white" : "bg-gray-800"
                 }`}
               />
             </motion.div>

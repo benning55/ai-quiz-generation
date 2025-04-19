@@ -71,8 +71,8 @@ export default function AdminPage() {
     <>
       <Header />
       <SignedIn>
-        <div className="min-h-screen bg-gradient-to-b from-red-50 to-white p-6">
-          <div className="max-w-3xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
+          <div className="max-w-3xl mx-auto pt-24 px-6 pb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
