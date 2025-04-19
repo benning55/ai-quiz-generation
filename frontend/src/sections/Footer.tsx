@@ -1,4 +1,5 @@
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 export const Footer = () => {
   return (
@@ -19,11 +20,11 @@ export const Footer = () => {
           </div>
           
           <nav className="flex flex-wrap justify-center gap-6">
-            <a href='#' className='hover:text-red-700 transition-colors'>About</a>
-            <a href='#' className='hover:text-red-700 transition-colors'>Practice Tests</a>
-            <a href='#' className='hover:text-red-700 transition-colors'>Study Guide</a>
-            <a href='#' className='hover:text-red-700 transition-colors'>Contact</a>
-            <a href='#' className='hover:text-red-700 transition-colors'>Privacy Policy</a>
+            <Link href="/about" className='hover:text-red-700 transition-colors'>About</Link>
+            <Link href="/quiz" className='hover:text-red-700 transition-colors'>Practice Tests</Link>
+            <Link href="/study-guide" className='hover:text-red-700 transition-colors'>Study Guide</Link>
+            <Link href="/contact" className='hover:text-red-700 transition-colors'>Contact</Link>
+            <Link href="/privacy" className='hover:text-red-700 transition-colors'>Privacy Policy</Link>
           </nav>
           
           <div className='flex gap-4'>

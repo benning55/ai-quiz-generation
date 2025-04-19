@@ -13,9 +13,20 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import hmac
 import hashlib
 import json
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import stripe
+from datetime import datetime, timedelta
+from .models import Base, User, Flashcard, Payment
 
 # Import the FastAPI app from __init__.py
 from . import app
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 # Dependency to get the database session
 def get_db():
@@ -223,28 +234,26 @@ async def get_current_user(
     request: Request = None
 ):
     print("==== Authentication Debug ====")
-    print(f"Credentials present: {credentials is not None}")
     
-    # Check request headers if available
-    if request:
-        print("Request headers:")
-        for header, value in request.headers.items():
-            print(f"  {header}: {value}")
+    # Check for token in Authorization header
+    token = None
+    if credentials:
+        token = credentials.credentials
+        print("Token found in Authorization header")
     
-    if not credentials:
-        print("No credentials provided")
+    # If no token in header, check for Clerk session cookie
+    if not token and request:
+        cookies = request.cookies
+        session_cookie = cookies.get("__session")
+        if session_cookie:
+            token = session_cookie
+            print("Token found in Clerk session cookie")
+    
+    if not token:
+        print("No authentication token found")
         return None
     
     try:
-        token = credentials.credentials
-        print(f"Token received length: {len(token)}")
-        print(f"Token received: {token[:20]}...")
-        
-        # Special debugging for token format
-        if token.startswith("Bearer "):
-            print("Token has 'Bearer ' prefix which should have been stripped by HTTPBearer")
-            token = token[7:]  # Remove "Bearer " prefix if it's still there
-        
         # Decode and verify the JWT token
         try:
             decoded_token = jwt.decode(
@@ -256,7 +265,6 @@ async def get_current_user(
             print(f"Decoded token: {decoded_token}")
             
             # Extract the clerk_id from the token
-            # The sub claim contains the user ID in Clerk tokens
             clerk_id = decoded_token.get("sub")
             print(f"Extracted clerk_id: {clerk_id}")
             
@@ -329,91 +337,136 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user
 
+@app.post("/create-payment-intent")
+async def create_payment_intent(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        # Create a PaymentIntent with the order amount and currency
+        payment_intent = stripe.PaymentIntent.create(
+            amount=2500,  # $25.00 CAD
+            currency='cad',
+            automatic_payment_methods={
+                'enabled': True,
+            },
+            metadata={
+                'user_id': str(current_user.id)
+            }
+        )
+        
+        return {"clientSecret": payment_intent.client_secret}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/webhook")
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.getenv("STRIPE_WEBHOOK_SECRET")
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError as e:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    if event.type == 'payment_intent.succeeded':
+        payment_intent = event.data.object
+        user_id = payment_intent.metadata.get('user_id')
+        
+        # Create payment record
+        payment = Payment(
+            user_id=user_id,
+            stripe_payment_intent_id=payment_intent.id,
+            amount=payment_intent.amount,
+            status='succeeded',
+            expires_at=datetime.utcnow() + timedelta(days=30)  # 30-day access
+        )
+        db.add(payment)
+        db.commit()
+
+    return {"status": "success"}
+
+# Modify the quiz generation endpoint
 @app.post("/generate-quiz-from-flashcards/")
 async def generate_quiz_from_flashcards(
-    request: QuizRequest, 
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
-    request_obj: Request = None
+    request: QuizRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Generate a quiz using flashcards from the database"""
-    print("==== Quiz Generation Debug ====")
-    
-    # Check if we have an authorization header directly
-    is_authenticated = False
-    
-    if current_user:
-        print(f"User authenticated via dependency: {current_user.id}, Clerk ID: {current_user.clerk_id}")
-        is_authenticated = True
-    elif request_obj and request_obj.headers.get("Authorization"):
-        # We have an auth header but the user dependency didn't work
-        print(f"Found Authorization header but no current_user: {request_obj.headers.get('Authorization')[:20]}...")
-        is_authenticated = True
-        print("Using Authorization header as fallback authentication")
-    else:
-        print("No authentication detected")
-    
-    # Build query based on request parameters
-    query = db.query(models.Flashcard)
-    
-    if request.category:
-        query = query.filter(models.Flashcard.category == request.category)
-    
-    # Get total count of matching flashcards
-    total_cards = query.count()
-    print(f"Total available flashcards: {total_cards}")
-    
-    if total_cards == 0:
-        raise HTTPException(status_code=404, detail="No flashcards found matching the criteria")
-    
-    # Limit the number of flashcards to what was requested
-    count = min(request.count, total_cards)
-    print(f"Requested flashcard count: {count}")
-    
-    # If user is not authenticated, limit to 3 questions only
-    if not is_authenticated:
-        count = min(count, 3)
-        print(f"User not authenticated, limiting to 3 questions")
-    else:
-        print(f"User authenticated, using requested count: {count}")
-    
-    print(f"Final flashcard count: {count}")
-    
-    # Get random flashcards
-    random_offset = random.randint(0, max(0, total_cards - count))
-    selected_flashcards = query.offset(random_offset).limit(count).all()
-    
-    # Format the flashcards into a study material
-    study_material = "\n\n".join([
-        f"Question: {card.question}\nAnswer: {card.answer}" 
-        for card in selected_flashcards
-    ])
-    
-    # Use groq to generate quiz questions based on flashcards
-    quiz_json = generate_questions(
-        study_material, 
-        question_count=count,
-        question_types=request.question_types
-    )
-    
-    # Create a quiz record in the database if user is authenticated
-    if current_user:
-        db_quiz = models.Quiz(
-            title=f"Quiz Generated on {func.now()}",
-            description=f"Quiz with {count} questions from category: {request.category or 'All'}",
-            user_id=current_user.id
+    try:
+        # Check if user is authenticated
+        is_authenticated = current_user is not None
+        
+        # Get user's active payment if authenticated
+        active_payment = None
+        if is_authenticated:
+            active_payment = db.query(Payment).filter(
+                Payment.user_id == current_user.id,
+                Payment.status == 'succeeded',
+                Payment.expires_at > datetime.utcnow()
+            ).first()
+        
+        # Determine question count based on user status
+        if not is_authenticated:
+            question_count = 3  # Free tier
+        elif active_payment:
+            question_count = request.count  # Full access
+        else:
+            question_count = min(request.count, 3)  # Logged in but not paid
+            
+        # Build query based on request parameters
+        query = db.query(models.Flashcard)
+        
+        if request.category:
+            query = query.filter(models.Flashcard.category == request.category)
+        
+        # Get total count of matching flashcards
+        total_cards = query.count()
+        print(f"Total available flashcards: {total_cards}")
+        
+        if total_cards == 0:
+            raise HTTPException(status_code=404, detail="No flashcards found matching the criteria")
+        
+        # Limit the number of flashcards to what was requested
+        count = min(question_count, total_cards)
+        print(f"Requested flashcard count: {count}")
+        
+        print(f"Final flashcard count: {count}")
+        
+        # Get random flashcards
+        random_offset = random.randint(0, max(0, total_cards - count))
+        selected_flashcards = query.offset(random_offset).limit(count).all()
+        
+        # Format the flashcards into a study material
+        study_material = "\n\n".join([
+            f"Question: {card.question}\nAnswer: {card.answer}" 
+            for card in selected_flashcards
+        ])
+        
+        # Use groq to generate quiz questions based on flashcards
+        quiz_json = generate_questions(
+            study_material, 
+            question_count=count,
+            question_types=request.question_types
         )
-        db.add(db_quiz)
-        db.commit()
-        db.refresh(db_quiz)
-    
-    # Return the generated quiz
-    return {
-        'quiz': quiz_json,
-        'flashcards_used': count,
-        'total_flashcards': total_cards,
-        'limited': not is_authenticated and request.count > 3
-    }
+        
+        return {
+            "questions": quiz_json,
+            "user_status": {
+                "is_authenticated": is_authenticated,
+                "has_active_payment": active_payment is not None,
+                "question_count": question_count
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 class FlashcardsImport(BaseModel):
     flashcards: List[FlashcardCreate]
@@ -562,17 +615,38 @@ async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "success", "message": f"Event {event_type} processed"}
 
 @app.get("/auth-debug")
-async def auth_debug(current_user = Depends(get_current_user)):
+async def auth_debug(request: Request, current_user = Depends(get_current_user)):
     """Debug endpoint to check authentication"""
     print("==== Auth Debug Endpoint ====")
+    
+    # Print all headers for debugging
+    print("All request headers:")
+    for header_name, header_value in request.headers.items():
+        print(f"  {header_name}: {header_value[:30] if len(header_value) > 30 else header_value}")
+    
+    # Check for auth header directly
+    auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+    
     if current_user:
-        print(f"User authenticated: {current_user.id}, {current_user.clerk_id}")
+        print(f"User authenticated via dependency: {current_user.id}, {current_user.clerk_id}")
         return {
             "authenticated": True,
             "user_id": current_user.id,
             "clerk_id": current_user.clerk_id,
-            "email": current_user.email
+            "email": current_user.email,
+            "auth_header_present": auth_header is not None
+        }
+    elif auth_header:
+        print(f"Auth header present but no user: {auth_header[:30]}...")
+        return {
+            "authenticated": False,
+            "auth_header_present": True,
+            "auth_header_prefix": auth_header[:30],
+            "message": "Token received but couldn't authenticate user"
         }
     else:
-        print("User not authenticated")
-        return {"authenticated": False}
+        print("User not authenticated, no auth header")
+        return {
+            "authenticated": False,
+            "auth_header_present": False
+        }

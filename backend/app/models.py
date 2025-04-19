@@ -1,7 +1,11 @@
 from sqlalchemy import Column, Integer, String, Text, ARRAY, JSON, ForeignKey, DateTime, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timedelta
 from .db import Base  # Import Base from db.py to link models to the database
+
+Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
@@ -73,3 +77,14 @@ class QuizQuestion(Base):
     # Relationships
     quiz = relationship("Quiz", back_populates="questions")
     flashcard = relationship("Flashcard", back_populates="quiz_questions")
+
+class Payment(Base):
+    __tablename__ = "payments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    stripe_payment_intent_id = Column(String)
+    amount = Column(Integer)  # in cents
+    status = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)
