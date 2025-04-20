@@ -628,7 +628,7 @@ export default function QuizPage() {
               >
                 {feedback === "correct" ? (
                   <>
-                    <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-5 h-5" />
                     <span className="font-medium">Correct answer!</span>
                   </>
                 ) : (
@@ -680,38 +680,38 @@ export default function QuizPage() {
   );
 
   if (!hasStarted) {
-    return (
+  return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
-        <Header />
+      <Header />
         
         <main className="flex-grow container mx-auto px-4 py-8 mt-16">
           <div className="max-w-2xl mx-auto text-center">
-            <motion.div
+              <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="space-y-8"
             >
               <div className="relative w-32 h-32 mx-auto">
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 5, 0, -5, 0],
-                  }}
-                  transition={{ 
-                    duration: 4,
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    ease: "easeInOut",
-                  }}
-                >
-                  <Image 
-                    src="/images/maple-leaf.svg" 
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, 5, 0, -5, 0],
+                      }}
+                      transition={{ 
+                        duration: 4,
+                        repeat: Infinity,
+                        repeatType: "loop",
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Image 
+                        src="/images/maple-leaf.svg" 
                     width={128} 
                     height={128} 
-                    alt="Canadian Maple Leaf"
-                    className="mx-auto"
-                  />
-                </motion.div>
+                        alt="Canadian Maple Leaf"
+                        className="mx-auto"
+                      />
+                    </motion.div>
               </div>
 
               <h1 className="text-3xl font-bold text-gray-800">Canadian Citizenship Practice Test</h1>
@@ -822,8 +822,8 @@ export default function QuizPage() {
                   </Button>
                 </div>
               )}
-            </motion.div>
-          </div>
+              </motion.div>
+        </div>
         </main>
       </div>
     );
