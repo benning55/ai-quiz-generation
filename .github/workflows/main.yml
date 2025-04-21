@@ -118,22 +118,27 @@ jobs:
         run: |
           cd frontend
           export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
+          # Get environment variables from Doppler
+          CLERK_PUBLISHABLE_KEY=$(doppler secrets get NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --plain)
+          CLERK_SECRET=$(doppler secrets get CLERK_SECRET_KEY --plain)
+          API_URL=$(doppler secrets get NEXT_PUBLIC_API_URL --plain)
+          
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             # For tags, use the tag version
             VERSION=${GITHUB_REF#refs/tags/}
-            doppler run -- docker build -f Dockerfile.prod \
-              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
-              --build-arg CLERK_SECRET_KEY=$CLERK_SECRET_KEY \
-              --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+            docker build -f Dockerfile.prod \
+              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$CLERK_PUBLISHABLE_KEY" \
+              --build-arg CLERK_SECRET_KEY="$CLERK_SECRET" \
+              --build-arg NEXT_PUBLIC_API_URL="$API_URL" \
               -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:$VERSION .
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:$VERSION
           else
             # For branches, use branch name
             BRANCH=${GITHUB_REF#refs/heads/}
-            doppler run -- docker build -f Dockerfile.prod \
-              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
-              --build-arg CLERK_SECRET_KEY=$CLERK_SECRET_KEY \
-              --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+            docker build -f Dockerfile.prod \
+              --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$CLERK_PUBLISHABLE_KEY" \
+              --build-arg CLERK_SECRET_KEY="$CLERK_SECRET" \
+              --build-arg NEXT_PUBLIC_API_URL="$API_URL" \
               -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:$BRANCH .
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:$BRANCH
           fi
