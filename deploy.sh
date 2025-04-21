@@ -3,6 +3,11 @@
 # Exit on error
 set -e
 
+# Set Docker Compose environment variables
+export REGISTRY=ghcr.io
+export IMAGE_NAME=$GITHUB_REPOSITORY  # This is automatically set by GitHub Actions
+export VERSION=${VERSION:-latest}     # Use the version from the workflow or default to latest
+
 # Install Doppler CLI if not already installed
 if ! command -v doppler &> /dev/null; then
     echo "Installing Doppler CLI..."
@@ -12,6 +17,10 @@ fi
 # Login to Doppler
 echo "Configuring Doppler..."
 doppler configure set token $DOPPLER_TOKEN
+
+# Login to GitHub Container Registry
+echo "Logging in to GitHub Container Registry..."
+echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
 # Pull latest images
 echo "Pulling latest images..."
