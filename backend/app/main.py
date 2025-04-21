@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Depends, Request, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, Depends, Request, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
@@ -16,8 +16,9 @@ import json
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import stripe
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .models import Base, User, Flashcard, Payment
+import asyncio
 
 # Import the FastAPI app from __init__.py
 from . import app
@@ -209,7 +210,11 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: int
     clerk_id: str
-    created_at: Optional[str] = None
+    last_sign_in: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    start_member_date_time: Optional[datetime] = None
+    end_member_date_time: Optional[datetime] = None
     
     class Config:
         orm_mode = True
@@ -218,12 +223,22 @@ class UserResponse(UserBase):
     def from_orm(cls, obj):
         # Create a dict from the ORM model instance
         dict_obj = {col.name: getattr(obj, col.name) for col in obj.__table__.columns}
+
+        print("*********")
+        print(dict_obj)
+        print("*********")
         
         # Convert datetime to string
         if dict_obj.get('created_at'):
             dict_obj['created_at'] = dict_obj['created_at'].isoformat()
         if dict_obj.get('updated_at'):
             dict_obj['updated_at'] = dict_obj['updated_at'].isoformat()
+        if dict_obj.get('last_sign_in'):
+            dict_obj['last_sign_in'] = dict_obj['last_sign_in'].isoformat()
+        if dict_obj.get('start_member_date_time'):
+            dict_obj['start_member_date_time'] = dict_obj['start_member_date_time'].isoformat()
+        if dict_obj.get('end_member_date_time'):
+            dict_obj['end_member_date_time'] = dict_obj['end_member_date_time'].isoformat()
             
         # Create an instance of this model using the dict
         return cls(**dict_obj)
@@ -310,7 +325,7 @@ async def get_current_user(
         return None
 
 # User management endpoints
-@app.post("/users/", response_model=UserResponse)
+@app.post("/api/users/", response_model=UserResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user (called when a user signs up with Clerk)"""
     # Check if user already exists
@@ -331,7 +346,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-@app.get("/users/me", response_model=UserResponse)
+@app.get("/api/users/me", response_model=UserResponse)
 async def get_current_user_info(current_user = Depends(get_current_user)):
     """Get current user info"""
     if not current_user:
@@ -362,37 +377,6 @@ async def create_payment_intent(
         return {"clientSecret": payment_intent.client_secret}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/webhook")
-async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
-    payload = await request.body()
-    sig_header = request.headers.get('stripe-signature')
-    
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, os.getenv("STRIPE_WEBHOOK_SECRET")
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    if event.type == 'payment_intent.succeeded':
-        payment_intent = event.data.object
-        user_id = payment_intent.metadata.get('user_id')
-        
-        # Create payment record
-        payment = Payment(
-            user_id=user_id,
-            stripe_payment_intent_id=payment_intent.id,
-            amount=payment_intent.amount,
-            status='succeeded',
-            expires_at=datetime.utcnow() + timedelta(days=30)  # 30-day access
-        )
-        db.add(payment)
-        db.commit()
-
-    return {"status": "success"}
 
 # Modify the quiz generation endpoint
 @app.post("/api/generate-quiz-from-flashcards")
@@ -651,3 +635,94 @@ async def auth_debug(request: Request, current_user = Depends(get_current_user))
             "authenticated": False,
             "auth_header_present": False
         }
+
+@app.post("/api/create-checkout-session")
+@app.post("/api/create-checkout-session/")
+async def create_checkout_session(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        # Create a Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'cad',
+                    'product_data': {
+                        'name': 'cancitizenship.com',
+                    },
+                    'unit_amount': 2500,  # $25.00 CAD
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'{os.getenv("FRONTEND_URL")}/quiz?payment=success',
+            cancel_url=f'{os.getenv("FRONTEND_URL")}/quiz?payment=cancelled',
+            metadata={
+                'user_id': str(current_user.id)
+            }
+        )
+        
+        return {"sessionId": checkout_session.url}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+async def check_membership_expiry():
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        expired_users = db.query(User).filter(
+            User.end_member_date_time.isnot(None),
+            User.end_member_date_time < now
+        ).all()
+        
+        for user in expired_users:
+            user.start_member_date_time = None
+            user.end_member_date_time = None
+        
+        if expired_users:
+            db.commit()
+    finally:
+        db.close()
+
+async def periodic_membership_check():
+    while True:
+        await check_membership_expiry()
+        await asyncio.sleep(3600)  # Check every hour
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the periodic check in the background
+    asyncio.create_task(periodic_membership_check())
+
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.getenv("STRIPE_WEBHOOK_SECRET")
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError as e:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session['metadata']['user_id']
+        
+        # Update user's membership
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            now = datetime.now(timezone.utc)
+            user.start_member_date_time = now
+            user.end_member_date_time = now + timedelta(days=7)
+            db.commit()
+    
+    return {"status": "success"}

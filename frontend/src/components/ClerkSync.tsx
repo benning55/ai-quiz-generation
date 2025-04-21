@@ -2,6 +2,7 @@
 
 import { useAuth, useUser } from "@clerk/nextjs"
 import { useEffect } from "react"
+import { API_ENDPOINTS } from '@/config/api';
 
 /**
  * Component that syncs Clerk user data with our backend
@@ -30,7 +31,7 @@ export function ClerkSync() {
 
           // Send to backend
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/users/`,
+            API_ENDPOINTS.USERS,
             {
               method: "POST",
               headers: {

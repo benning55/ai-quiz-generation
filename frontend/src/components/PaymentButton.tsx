@@ -2,10 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { loadStripe } from "@stripe/stripe-js"
 import { useAuth } from "@clerk/nextjs"
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+import { API_ENDPOINTS } from '@/config/api'
 
 export function PaymentButton() {
   const [loading, setLoading] = useState(false)
@@ -14,47 +12,33 @@ export function PaymentButton() {
   const handlePayment = async () => {
     try {
       setLoading(true)
-      
+
       // Get the authentication token
       const token = await getToken()
       if (!token) {
         throw new Error("Not authenticated")
       }
 
-      // Create payment intent
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/create-payment-intent`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+      // Create checkout session
+      const response = await fetch(
+        API_ENDPOINTS.CHECKOUT,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      )
 
       if (!response.ok) {
-        throw new Error("Failed to create payment intent")
+        throw new Error("Failed to create checkout session")
       }
 
-      const { clientSecret } = await response.json()
+      const { sessionId } = await response.json()
 
-      // Load Stripe
-      const stripe = await stripePromise
-      if (!stripe) {
-        throw new Error("Failed to load Stripe")
-      }
-
-      // Confirm the payment
-      const { error } = await stripe.confirmPayment({
-        elements: {
-          clientSecret
-        },
-        confirmParams: {
-          return_url: `${window.location.origin}/quiz?payment=success`
-        }
-      })
-
-      if (error) {
-        throw error
-      }
+      // Redirect to Stripe Checkout
+      window.location.href = sessionId
     } catch (error) {
       console.error("Payment error:", error)
       alert("Payment failed. Please try again.")
@@ -67,10 +51,10 @@ export function PaymentButton() {
     <Button
       onClick={handlePayment}
       disabled={loading}
-      size="lg"
-      className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 shadow-lg"
+      size='lg'
+      className='bg-green-600 hover:bg-green-700 text-white transition-all duration-300 shadow-lg'
     >
       {loading ? "Processing..." : "Purchase Full Access - $25 CAD"}
     </Button>
   )
-} 
+}

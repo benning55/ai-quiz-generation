@@ -23,8 +23,8 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase2
+    env_file:
+      - backend/.env
     depends_on:
       db:
         condition: service_healthy
@@ -40,8 +40,6 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost/api
     command: yarn dev
     networks:
       - app-network

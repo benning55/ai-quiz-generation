@@ -3,7 +3,7 @@
     auto_https off
 }
 
-http://localhost {
+:80 {
     # Direct mapping for the API routes
     handle /api/* {
         reverse_proxy backend:8000

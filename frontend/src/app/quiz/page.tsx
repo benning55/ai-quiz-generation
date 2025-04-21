@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { Progress } from "@/components/ui/progress"
 import confetti from 'canvas-confetti'
 import { PaymentButton } from '@/components/PaymentButton'
+import { API_ENDPOINTS } from '@/config/api'
 
 type QuizQuestion = {
   question: string;
@@ -79,7 +80,7 @@ export default function QuizPage() {
         }
       }
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-quiz-from-flashcards/`, {
+      const response = await fetch(API_ENDPOINTS.GENERATE_QUIZ, {
         method: 'POST',
         headers,
         body: JSON.stringify({

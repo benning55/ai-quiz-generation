@@ -7,6 +7,7 @@ import { Loader2, Upload, Check, AlertTriangle } from "lucide-react"
 import { motion } from "framer-motion"
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs"
 import { Header } from "@/sections/Header"
+import { API_ENDPOINTS } from '@/config/api'
 
 export default function AdminPage() {
   const [jsonContent, setJsonContent] = useState<string>('')
@@ -49,7 +50,7 @@ export default function AdminPage() {
       const flashcardsData = JSON.parse(jsonContent)
       
       // Make API request
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/import-flashcards-json/`, {
+      const response = await fetch(API_ENDPOINTS.IMPORT_FLASHCARDS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

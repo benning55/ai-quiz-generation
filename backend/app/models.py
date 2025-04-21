@@ -17,6 +17,10 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
+    # Membership tracking
+    start_member_date_time = Column(DateTime(timezone=True), nullable=True)
+    end_member_date_time = Column(DateTime(timezone=True), nullable=True)
+    
     # Relationships
     flashcards = relationship("Flashcard", back_populates="user")
     quizzes = relationship("Quiz", back_populates="user")
