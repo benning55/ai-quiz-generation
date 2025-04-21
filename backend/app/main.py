@@ -25,6 +25,7 @@ from . import app
 # Load environment variables
 load_dotenv()
 
+print(os.getenv("STRIPE_SECRET_KEY"))
 # Initialize Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
@@ -394,7 +395,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "success"}
 
 # Modify the quiz generation endpoint
-@app.post("/generate-quiz-from-flashcards/")
+@app.post("/api/generate-quiz-from-flashcards")
+@app.post("/api/generate-quiz-from-flashcards/")
 async def generate_quiz_from_flashcards(
     request: QuizRequest,
     current_user: User = Depends(get_current_user),
@@ -469,7 +471,8 @@ async def generate_quiz_from_flashcards(
 class FlashcardsImport(BaseModel):
     flashcards: List[FlashcardCreate]
 
-@app.post("/import-flashcards/")
+@app.post("/api/import-flashcards-json/")
+@app.post("/api/import-flashcards-json")
 async def import_flashcards(data: FlashcardsImport, db: Session = Depends(get_db)):
     """Import multiple flashcards from JSON"""
     imported_flashcards = []

@@ -6,7 +6,6 @@
 http://localhost {
     # Direct mapping for the API routes
     handle /api/* {
-        uri strip_prefix /api
         reverse_proxy backend:8000
     }
 

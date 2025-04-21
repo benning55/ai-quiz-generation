@@ -148,7 +148,7 @@ export default function QuizPage() {
   const handleOptionSelect = (option: string | boolean) => {
     if (showAnswer) return;
     
-    setSelectedOption(option);
+    setSelectedOption(typeof option === 'boolean' ? String(option) : option);
     setShowAnswer(true);
     
     const currentQuestion = quiz[currentQuestionIndex];
@@ -296,7 +296,7 @@ export default function QuizPage() {
           </div>
         </CardHeader>
         
-        <CardContent className="relative z-10 px-4 sm:px-8 flex-1 overflow-y-auto">
+        <CardContent className="relative z-10 px-4 sm:px-8 overflow-y-auto">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

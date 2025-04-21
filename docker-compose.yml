@@ -42,8 +42,6 @@ services:
       - /app/.next
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost/api
-    depends_on:
-      - backend
     command: yarn dev
     networks:
       - app-network

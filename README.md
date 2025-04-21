@@ -211,6 +211,80 @@ If you encounter issues with migrations:
    alembic upgrade head
    ```
 
+## API Documentation
+
+The backend provides the following REST API endpoints:
+
+### File Processing & Quiz Generation
+- `POST /extract-text`
+  - Description: Extract text from uploaded files and generate quizzes
+  - Accepts: File upload (PDF, DOC, DOCX, PPT, PPTX)
+  - Returns: Extracted text and generated quiz
+
+- `POST /generate-quiz-from-flashcards/`
+  - Description: Generate quizzes from existing flashcards
+  - Accepts: QuizRequest object with category, count, and question types
+  - Returns: Generated quiz
+
+### Flashcard Management
+- `GET /flashcards/`
+  - Description: Get all flashcards with optional filtering
+  - Query Parameters:
+    - `skip`: Pagination offset
+    - `limit`: Number of items per page
+    - `category`: Filter by category
+    - `tag`: Filter by tag
+  - Returns: List of flashcards
+
+- `GET /flashcards/{flashcard_id}`
+  - Description: Get a specific flashcard by ID
+  - Returns: Single flashcard
+
+- `POST /flashcards/`
+  - Description: Create a new flashcard
+  - Accepts: FlashcardCreate object
+  - Returns: Created flashcard
+
+- `POST /api/import-flashcards-json`
+  - Description: Import multiple flashcards via JSON
+  - Accepts: List of flashcards
+  - Returns: Import status
+
+### User Management
+- `POST /users/`
+  - Description: Create a new user
+  - Accepts: UserCreate object
+  - Returns: Created user
+
+- `GET /users/me`
+  - Description: Get current user information
+  - Returns: User details
+
+### Payment Processing
+- `POST /create-payment-intent`
+  - Description: Create a Stripe payment intent
+  - Returns: Payment intent details
+
+- `POST /webhook`
+  - Description: Handle Stripe webhooks
+  - Accepts: Stripe webhook events
+
+### Webhooks
+- `POST /api/webhooks/clerk`
+  - Description: Handle Clerk webhooks for user synchronization
+  - Accepts: Clerk webhook events
+
+### Utility Endpoints
+- `GET /`
+  - Description: Root endpoint
+  - Returns: Basic information
+
+- `GET /health`
+  - Description: Health check endpoint
+  - Returns: Service status
+
+Note: All endpoints are prefixed with `/api` in production (as configured in Caddyfile).
+
 ## Production Deployment
 
 ### Prerequisites
