@@ -147,9 +147,14 @@ jobs:
     needs: [build-backend, build-frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-
+    
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure Doppler
+        uses: dopplerhq/cli-action@v1
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Deploy to production
         uses: appleboy/ssh-action@v1.0.3
@@ -157,9 +162,39 @@ jobs:
           host: ${{ secrets.PROD_SERVER_HOST }}
           username: ${{ secrets.PROD_SERVER_USER }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
-          envs: DOPPLER_TOKEN,GITHUB_TOKEN,GITHUB_REPOSITORY,GITHUB_ACTOR
           script: |
             cd ai-quiz-generation/
+            
+            # Pull latest code
             git pull
-            sudo chmod +x deploy.sh
-            ./deploy.sh
+            export VERSION=${VERSION:-$(git describe --tags --always 2>/dev/null || echo "latest")}
+            echo "Start deploying version $VERSION"
+
+            # Configure Doppler and export environment variables
+            echo "🔍 Configuring Doppler..."
+            export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
+            doppler configure set token "$DOPPLER_TOKEN" --silent
+
+            echo "📋 Exporting Doppler environment variables..."
+            eval "$(doppler secrets export --format bash)"
+
+            # Print all environment variables for debugging
+            echo "🔍 Current environment variables:"
+            env | sort
+
+            # Login to GitHub Container Registry
+            echo "🔐 Logging in to GitHub Container Registry..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            # Pull and start services with environment variables
+            echo "📦 Pulling latest images..."
+            docker-compose -f docker-compose.prod.yml pull
+
+            echo "🚀 Starting services with environment variables..."
+            doppler run -- docker-compose -f docker-compose.prod.yml up -d
+
+            # Clean up unused images
+            echo "🧹 Cleaning up unused Docker images..."
+            docker image prune -f
+
+            echo "✅ Deployment completed successfully! Version: $VERSION"
