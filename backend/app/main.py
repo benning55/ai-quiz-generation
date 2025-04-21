@@ -396,14 +396,16 @@ async def generate_quiz_from_flashcards(
             active_payment = db.query(Payment).filter(
                 Payment.user_id == current_user.id,
                 Payment.status == 'succeeded',
-                Payment.expires_at > datetime.utcnow()
+                Payment.expires_at > datetime.now(timezone.utc)
             ).first()
         
         # Determine question count based on user status
         if not is_authenticated:
             question_count = 3  # Free tier
+        elif active_payment:
+            question_count = 20  # Premium tier with active payment
         else:
-            question_count = request.count  # Logged in users get requested count (10)
+            question_count = request.count  # Logged in users without active payment get requested count (10)
             
         # Build query based on request parameters
         query = db.query(models.Flashcard)
@@ -671,34 +673,6 @@ async def create_checkout_session(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-async def check_membership_expiry():
-    db = SessionLocal()
-    try:
-        now = datetime.now(timezone.utc)
-        expired_users = db.query(User).filter(
-            User.end_member_date_time.isnot(None),
-            User.end_member_date_time < now
-        ).all()
-        
-        for user in expired_users:
-            user.start_member_date_time = None
-            user.end_member_date_time = None
-        
-        if expired_users:
-            db.commit()
-    finally:
-        db.close()
-
-async def periodic_membership_check():
-    while True:
-        await check_membership_expiry()
-        await asyncio.sleep(3600)  # Check every hour
-
-@app.on_event("startup")
-async def startup_event():
-    # Start the periodic check in the background
-    asyncio.create_task(periodic_membership_check())
-
 @app.post("/api/stripe/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
@@ -717,12 +691,15 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         session = event['data']['object']
         user_id = session['metadata']['user_id']
         
-        # Update user's membership
-        user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            now = datetime.now(timezone.utc)
-            user.start_member_date_time = now
-            user.end_member_date_time = now + timedelta(days=7)
-            db.commit()
+        # Create payment record
+        payment = Payment(
+            user_id=user_id,
+            stripe_payment_intent_id=session.payment_intent,
+            amount=session.amount_total,  # in cents
+            status='succeeded',
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)  # 7-day membership
+        )
+        db.add(payment)
+        db.commit()
     
     return {"status": "success"}

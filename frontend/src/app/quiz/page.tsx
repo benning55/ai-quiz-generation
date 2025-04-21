@@ -79,15 +79,21 @@ export default function QuizPage() {
           headers['Authorization'] = `Bearer ${token}`;
         }
       }
+
+      const questions_amount = userStatus.has_active_payment
+        ? 20
+        : userId
+        ? 5
+        : 3
       
       const response = await fetch(API_ENDPOINTS.GENERATE_QUIZ, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({
-          count: userId ? 10 : 3,
-          question_types: ["multiple_choice", "true_false"]
+          count: questions_amount,
+          question_types: ["multiple_choice"],
         }),
-      });
+      })
 
       const data = await response.json();
       
@@ -793,7 +799,7 @@ export default function QuizPage() {
                           <span>Generating Quiz...</span>
                         </div>
                       ) : (
-                        "Start Test (10 Questions)"
+                        "Start Test (5 Questions)"
                       )}
                     </Button>
                   </div>
@@ -823,7 +829,7 @@ export default function QuizPage() {
                         <span>Generating Quiz...</span>
                       </div>
                     ) : (
-                      "Start Full Test (10 Questions)"
+                      "Start Full Test (20 Questions)"
                     )}
                   </Button>
                 </div>
