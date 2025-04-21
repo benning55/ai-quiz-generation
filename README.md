@@ -140,6 +140,77 @@ The database includes the following tables:
   - `description`: Quiz description
   - `user_id`: Foreign key to users table (optional)
 
+## Database Migrations
+
+The application uses Alembic for database migrations. Here's how to manage your database schema:
+
+### Initial Setup
+
+1. Make sure your database container is running:
+   ```bash
+   docker compose up -d
+   ```
+
+2. Enter the backend container:
+   ```bash
+   docker compose exec backend bash
+   ```
+
+3. Navigate to the backend directory:
+   ```bash
+   cd /app
+   ```
+
+### Creating Migrations
+
+When you make changes to your models in `app/models.py`:
+
+1. Create a new migration:
+   ```bash
+   alembic revision --autogenerate -m "description of changes"
+   ```
+
+2. Apply the migration:
+   ```bash
+   alembic upgrade head
+   ```
+
+### Common Migration Commands
+
+- View current migration status:
+  ```bash
+  alembic current
+  ```
+
+- View migration history:
+  ```bash
+  alembic history
+  ```
+
+- Rollback last migration:
+  ```bash
+  alembic downgrade -1
+  ```
+
+- Rollback to specific migration:
+  ```bash
+  alembic downgrade <revision_id>
+  ```
+
+### Troubleshooting
+
+If you encounter issues with migrations:
+
+1. Check if the database is running and accessible
+2. Verify your `DATABASE_URL` in the environment variables
+3. Ensure all model changes are properly reflected in the migration
+4. If needed, you can reset the database and start fresh:
+   ```bash
+   # WARNING: This will delete all data
+   alembic downgrade base
+   alembic upgrade head
+   ```
+
 ## Production Deployment
 
 ### Prerequisites

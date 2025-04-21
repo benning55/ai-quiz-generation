@@ -6,13 +6,13 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
+      POSTGRES_DB: mydatabase2
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase2"]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -24,7 +24,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase2
     depends_on:
       db:
         condition: service_healthy
@@ -66,6 +66,6 @@ networks:
   app-network:
 
 volumes:
-  postgres_data:
+  db_data:
   caddy_data:
   caddy_config:

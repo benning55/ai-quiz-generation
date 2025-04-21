@@ -1,11 +1,8 @@
 from sqlalchemy import Column, Integer, String, Text, ARRAY, JSON, ForeignKey, DateTime, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
 from .db import Base  # Import Base from db.py to link models to the database
-
-Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"

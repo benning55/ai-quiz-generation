@@ -11,3 +11,4 @@ groq
 PyJWT==2.10.1
 python-dotenv==1.0.0
 stripe==7.7.0
+alembic
