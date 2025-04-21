@@ -459,7 +459,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500">New Canadian Citizen</p>
                   </div>
                 </div>
-                <p className="text-gray-600">"This platform was instrumental in my preparation. The practice questions were very similar to the actual test. I passed on my first attempt!"</p>
+                <p className="text-gray-600">&quot;This platform was instrumental in my preparation. The practice questions were very similar to the actual test. I passed on my first attempt!&quot;</p>
                 
                 <div className="mt-6 flex">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -484,7 +484,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500">Permanent Resident</p>
                   </div>
                 </div>
-                <p className="text-gray-600">"The AI quizzes adapted to my weak areas and helped me focus on what I needed to learn most. The interface is intuitive and makes studying enjoyable."</p>
+                <p className="text-gray-600">&quot;The AI quizzes adapted to my weak areas and helped me focus on what I needed to learn most. The interface is intuitive and makes studying enjoyable.&quot;</p>
                 
                 <div className="mt-6 flex">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -509,7 +509,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500">New Canadian Citizen</p>
                   </div>
                 </div>
-                <p className="text-gray-600">"I was nervous about the test, but after completing over 20 practice quizzes on this platform, I felt confident and well-prepared. Highly recommended!"</p>
+                <p className="text-gray-600">&quot;I was nervous about the test, but after completing over 20 practice quizzes on this platform, I felt confident and well-prepared. Highly recommended!&quot;</p>
                 
                 <div className="mt-6 flex">
                   {[1, 2, 3, 4, 5].map((star) => (
