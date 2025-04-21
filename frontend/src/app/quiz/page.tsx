@@ -29,7 +29,7 @@ type QuizData = {
 export default function QuizPage() {
   const { isLoaded, userId, getToken } = useAuth();
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLimited, setIsLimited] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -129,12 +129,33 @@ export default function QuizPage() {
     return () => clearInterval(interval);
   }, [isLoading, quiz.length, quizCompleted]);
 
+
+  const fetchUser = async () => {
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+    // Add auth token if user is signed in
+    if (userId) {
+      const token = await getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } else {
+      return
+    }
+    const response = await fetch(API_ENDPOINTS.USER, {
+      method: "GET",
+      headers: headers
+    })
+    const data = await response.json()
+    setUserStatus(data.user_status)
+  }
+
   // Load the quiz when component mounts
   useEffect(() => {
-    if (isLoaded) {
-      fetchQuiz();
-    }
-  }, [isLoaded, fetchQuiz]);
+    fetchUser()
+  }, []);
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quiz.length - 1) {

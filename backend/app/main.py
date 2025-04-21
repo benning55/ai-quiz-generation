@@ -244,6 +244,13 @@ class UserResponse(UserBase):
         # Create an instance of this model using the dict
         return cls(**dict_obj)
 
+class UserStatus(BaseModel):
+    has_active_payment: bool
+
+class UserInfoResponse(BaseModel):
+    user: UserResponse
+    user_status: UserStatus
+
 # Function to get user from token
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -347,12 +354,27 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-@app.get("/api/users/me", response_model=UserResponse)
-async def get_current_user_info(current_user = Depends(get_current_user)):
+@app.get("/api/user", response_model=UserInfoResponse)
+@app.get("/api/user/", response_model=UserInfoResponse)
+async def get_current_user_info(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get current user info"""
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    return current_user
+    
+    active_payment = None
+    if current_user:
+        active_payment = db.query(Payment).filter(
+            Payment.user_id == current_user.id,
+            Payment.status == 'succeeded',
+            Payment.expires_at > datetime.now(timezone.utc)
+        ).first()
+    
+    return {
+        "user": current_user,
+        "user_status": {
+            "has_active_payment": active_payment is not None
+        }
+    }
 
 @app.post("/create-payment-intent")
 async def create_payment_intent(
