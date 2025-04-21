@@ -40,7 +40,7 @@ export default function QuizPage() {
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [userStatus, setUserStatus] = useState({ has_active_payment: false });
+  const [userStatus, setUserStatus] = useState<{ has_active_payment: boolean } | null>(null);
   const [userAnswers, setUserAnswers] = useState<(string | boolean | null)[]>([]);
   const [answerResults, setAnswerResults] = useState<boolean[]>([]);
   const [showSummary, setShowSummary] = useState(false);
@@ -80,7 +80,7 @@ export default function QuizPage() {
         }
       }
 
-      const questions_amount = userStatus.has_active_payment
+      const questions_amount = userStatus?.has_active_payment
         ? 20
         : userId
         ? 5
@@ -692,38 +692,38 @@ export default function QuizPage() {
   );
 
   if (!hasStarted) {
-  return (
+    return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
-      <Header />
+        <Header />
         
         <main className="flex-grow container mx-auto px-4 py-8 mt-16">
           <div className="max-w-2xl mx-auto text-center">
-              <motion.div
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="space-y-8"
             >
               <div className="relative w-32 h-32 mx-auto">
-                    <motion.div
-                      animate={{ 
-                        rotate: [0, 5, 0, -5, 0],
-                      }}
-                      transition={{ 
-                        duration: 4,
-                        repeat: Infinity,
-                        repeatType: "loop",
-                        ease: "easeInOut",
-                      }}
-                    >
-                      <Image 
-                        src="/images/maple-leaf.svg" 
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 5, 0, -5, 0],
+                  }}
+                  transition={{ 
+                    duration: 4,
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                  }}
+                >
+                  <Image 
+                    src="/images/maple-leaf.svg" 
                     width={128} 
                     height={128} 
-                        alt="Canadian Maple Leaf"
-                        className="mx-auto"
-                      />
-                    </motion.div>
+                    alt="Canadian Maple Leaf"
+                    className="mx-auto"
+                  />
+                </motion.div>
               </div>
 
               <h1 className="text-3xl font-bold text-gray-800">Canadian Citizenship Practice Test</h1>
@@ -769,6 +769,19 @@ export default function QuizPage() {
                         Sign Up for Full Access
                       </Button>
                     </Link>
+                  </div>
+                </div>
+              ) : userStatus === null ? (
+                <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6 animate-pulse">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full" />
+                    <div className="h-6 w-32 bg-gray-200 rounded" />
+                  </div>
+                  <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded mx-auto" />
+                  <div className="space-y-4">
+                    <div className="h-12 w-full bg-gray-200 rounded" />
+                    <div className="h-12 w-full bg-gray-200 rounded" />
                   </div>
                 </div>
               ) : !userStatus.has_active_payment ? (
@@ -834,8 +847,8 @@ export default function QuizPage() {
                   </Button>
                 </div>
               )}
-              </motion.div>
-        </div>
+            </motion.div>
+          </div>
         </main>
       </div>
     );
