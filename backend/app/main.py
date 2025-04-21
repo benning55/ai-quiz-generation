@@ -4,7 +4,8 @@ from sqlalchemy import func
 from typing import List, Optional
 from .db import SessionLocal, engine
 from . import models
-from .groq_client import generate_questions
+from .groq_client import generate_questions as groq_generate_questions
+from .deepseek_client import generate_questions as deepseek_generate_questions
 import os
 import random
 from pydantic import BaseModel, Field
@@ -378,6 +379,13 @@ async def create_payment_intent(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# Function to select the appropriate AI client
+def get_ai_client():
+    ai_provider = os.getenv("AI_PROVIDER", "groq").lower()
+    if ai_provider == "deepseek":
+        return deepseek_generate_questions
+    return groq_generate_questions
+
 # Modify the quiz generation endpoint
 @app.post("/api/generate-quiz-from-flashcards")
 @app.post("/api/generate-quiz-from-flashcards/")
@@ -436,7 +444,8 @@ async def generate_quiz_from_flashcards(
             for card in selected_flashcards
         ])
         
-        # Use groq to generate quiz questions based on flashcards
+        # Use selected AI client to generate quiz questions
+        generate_questions = get_ai_client()
         quiz_json = generate_questions(
             study_material, 
             question_count=count,
