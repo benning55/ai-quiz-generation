@@ -217,13 +217,13 @@ export default function QuizPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="py-8"
+      className="py-8 max-w-4xl mx-auto h-[calc(100vh-12rem)] flex flex-col"
     >
-      <Card className="shadow-xl overflow-hidden border-0 bg-gradient-to-tr from-white to-red-50">
-        <div className="absolute right-0 top-0 w-32 h-32 bg-red-200 rounded-full -mt-16 -mr-16 opacity-20" />
+      <Card className="shadow-xl overflow-hidden border-0 bg-gradient-to-tr from-white to-red-50 flex-1 flex flex-col">
+        {/* <div className="absolute right-0 top-0 w-32 h-32 bg-red-200 rounded-full -mt-16 -mr-16 opacity-20" /> */}
         <div className="absolute left-0 bottom-0 w-40 h-40 bg-yellow-200 rounded-full -mb-20 -ml-20 opacity-20" />
         
-        <CardHeader className="text-center relative z-10">
+        <CardHeader className="text-center relative z-10 flex-shrink-0">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -237,7 +237,7 @@ export default function QuizPage() {
           >
             <div className="relative inline-block">
               <Trophy 
-                className={`w-20 h-20 ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 ${
                   score > Math.floor(quiz.length * 0.7) 
                     ? "text-yellow-500" 
                     : "text-gray-400"
@@ -256,26 +256,26 @@ export default function QuizPage() {
                   }}
                   className="absolute inset-0 text-yellow-400"
                 >
-                  <Sparkles className="w-20 h-20" />
+                  <Sparkles className="w-16 h-16 sm:w-20 sm:h-20" />
                 </motion.div>
               )}
             </div>
           </motion.div>
           
-          <CardTitle className="text-3xl font-bold text-gray-800">
+          <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">
             Quiz Complete!
           </CardTitle>
           
-          <div className="mt-2 text-lg">
+          <div className="mt-2 text-base sm:text-lg">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="flex justify-center space-x-8 mt-4"
+              className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-4"
             >
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium text-gray-500 mb-1">Score</div>
-                <div className="text-3xl font-bold text-red-600">
+                <div className="text-2xl sm:text-3xl font-bold text-red-600">
                   {score}/{quiz.length}
                 </div>
                 <div className="text-sm font-medium text-gray-500 mt-1">
@@ -285,7 +285,7 @@ export default function QuizPage() {
               
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium text-gray-500 mb-1">Time</div>
-                <div className="text-3xl font-bold text-red-600">
+                <div className="text-2xl sm:text-3xl font-bold text-red-600">
                   {formatTime(seconds)}
                 </div>
                 <div className="text-sm font-medium text-gray-500 mt-1">
@@ -296,12 +296,12 @@ export default function QuizPage() {
           </div>
         </CardHeader>
         
-        <CardContent className="relative z-10 px-8">
+        <CardContent className="relative z-10 px-4 sm:px-8 flex-1 overflow-y-auto">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mt-6 shadow-sm"
+            className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 mt-6 shadow-sm"
           >
             <h3 className="text-lg font-semibold mb-4">Your Performance</h3>
             
@@ -338,14 +338,15 @@ export default function QuizPage() {
           </motion.div>
         </CardContent>
         
-        <CardFooter className="flex justify-center gap-4 pt-4 pb-8 relative z-10">
+        <CardFooter className="flex flex-col md:flex-row justify-center gap-4 pt-4 pb-8 relative z-10 px-4 sm:px-8 flex-shrink-0 bg-white/50 backdrop-blur-sm mt-4">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="w-full sm:w-auto"
           >
             <Button 
               onClick={() => setShowSummary(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-5 rounded-xl shadow-md flex items-center gap-2"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full"
               size="lg"
             >
               <Trophy className="w-5 h-5" />
@@ -356,10 +357,11 @@ export default function QuizPage() {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="w-full sm:w-auto"
           >
             <Button 
               onClick={fetchQuiz}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-5 rounded-xl shadow-md flex items-center gap-2"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full"
               size="lg"
             >
               <RefreshCcw className="w-5 h-5" />
@@ -371,11 +373,12 @@ export default function QuizPage() {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="w-full sm:w-auto"
             >
               <Link href="/sign-up">
                 <Button 
                   variant="outline" 
-                  className="px-8 py-5 rounded-xl border-2"
+                  className="px-6 sm:px-8 py-4 sm:py-5 rounded-xl border-2 w-full"
                   size="lg"
                 >
                   Sign Up for Full Access
@@ -388,15 +391,15 @@ export default function QuizPage() {
 
       {/* Quiz Summary Modal */}
       {showSummary && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-xl p-4 sm:p-6 max-w-2xl w-full mx-auto max-h-[80vh] overflow-y-auto"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">Quiz Summary</h2>
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quiz Summary</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -475,7 +478,7 @@ export default function QuizPage() {
       />
       
       <Card className="shadow-lg border-0 overflow-hidden">
-        <div className="absolute right-0 top-0 w-40 h-40 bg-red-50 rounded-full -mt-20 -mr-20" />
+        {/* <div className="absolute right-0 top-0 w-40 h-40 bg-red-50 rounded-full -mt-20 -mr-20" /> */}
         <div className="absolute left-0 bottom-0 w-32 h-32 bg-red-50 rounded-full -mb-16 -ml-16" />
         
         <CardHeader className="relative z-10">
@@ -520,7 +523,7 @@ export default function QuizPage() {
                           ? (option === quiz[currentQuestionIndex].answer ? "default" : "destructive") 
                           : "default") 
                       : "outline"}
-                    className={`w-full justify-start text-left p-4 h-auto relative overflow-hidden ${
+                    className={`w-full justify-start text-left p-4 h-auto relative overflow-hidden whitespace-normal break-words ${
                       showAnswer && option === quiz[currentQuestionIndex].answer 
                         ? "bg-green-100 border-2 border-green-500 text-green-700 hover:bg-green-100" 
                         : showAnswer && selectedOption === option
@@ -530,14 +533,16 @@ export default function QuizPage() {
                     onClick={() => handleOptionSelect(option)}
                     disabled={showAnswer}
                   >
-                    <div className="flex items-center gap-2 z-10 relative">
-                      {showAnswer && option === quiz[currentQuestionIndex].answer && (
-                        <CheckCircle className="text-green-500 w-5 h-5 mr-1" />
-                      )}
-                      {showAnswer && selectedOption === option && option !== quiz[currentQuestionIndex].answer && (
-                        <XCircle className="text-red-500 w-5 h-5 mr-1" />
-                      )}
-                      {option}
+                    <div className="flex items-start gap-2 z-10 relative">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {showAnswer && option === quiz[currentQuestionIndex].answer && (
+                          <CheckCircle className="text-green-500 w-5 h-5" />
+                        )}
+                        {showAnswer && selectedOption === option && option !== quiz[currentQuestionIndex].answer && (
+                          <XCircle className="text-red-500 w-5 h-5" />
+                        )}
+                      </div>
+                      <span className="flex-1">{option}</span>
                     </div>
                     
                     {showAnswer && option === quiz[currentQuestionIndex].answer && (
