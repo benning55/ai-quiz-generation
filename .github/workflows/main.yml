@@ -161,4 +161,5 @@ jobs:
           script: |
             cd ai-quiz-generation/
             git pull
+            sudo chmod +x deploy.sh
             ./deploy.sh
