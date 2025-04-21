@@ -150,6 +150,7 @@ jobs:
           username: ${{ secrets.PROD_SERVER_USER }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           script: |
+            cd ai-quiz-generation/
             export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
             export VERSION='${GITHUB_REF#refs/tags/}'
             echo "Start deploying version $VERSION"
