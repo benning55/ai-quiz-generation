@@ -147,7 +147,7 @@ jobs:
     needs: [build-backend, build-frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -157,20 +157,8 @@ jobs:
           host: ${{ secrets.PROD_SERVER_HOST }}
           username: ${{ secrets.PROD_SERVER_USER }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          envs: DOPPLER_TOKEN,GITHUB_TOKEN,GITHUB_REPOSITORY,GITHUB_ACTOR
           script: |
             cd ai-quiz-generation/
-            echo '${{ secrets.DOPPLER_TOKEN }}'
-            export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
-            export VERSION='${GITHUB_REF#refs/tags/}'
-            echo "Start deploying version $VERSION"
-            
-            # Load Doppler environment variables
-            echo "Configuring Doppler..."
-            doppler configure set token $DOPPLER_TOKEN
-            
-            # Export all environment variables from Doppler
-            echo "Loading environment variables..."
-            eval $(doppler secrets export --format env)
-            
-            # Run deployment script
+            git pull
             ./deploy.sh
