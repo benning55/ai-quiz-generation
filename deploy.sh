@@ -14,9 +14,11 @@ if ! command -v doppler &> /dev/null; then
     curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
 fi
 
-# Login to Doppler
+# Login to Doppler and export all environment variables
 echo "Configuring Doppler..."
 doppler configure set token $DOPPLER_TOKEN
+echo "Loading environment variables..."
+eval $(doppler secrets export --format env)
 
 # Login to GitHub Container Registry
 echo "Logging in to GitHub Container Registry..."
@@ -26,9 +28,9 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 echo "Pulling latest images..."
 docker-compose -f docker-compose.prod.yml pull
 
-# Run Docker Compose with Doppler environment variables
+# Run Docker Compose with all environment variables
 echo "Starting services..."
-doppler run -- docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml up -d
 
 # Clean up unused images
 echo "Cleaning up unused images..."

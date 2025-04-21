@@ -167,4 +167,14 @@ jobs:
             export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
             export VERSION='${GITHUB_REF#refs/tags/}'
             echo "Start deploying version $VERSION"
+            
+            # Load Doppler environment variables
+            echo "Configuring Doppler..."
+            doppler configure set token $DOPPLER_TOKEN
+            
+            # Export all environment variables from Doppler
+            echo "Loading environment variables..."
+            eval $(doppler secrets export --format env)
+            
+            # Run deployment script
             ./deploy.sh
