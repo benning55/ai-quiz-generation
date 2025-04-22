@@ -257,7 +257,7 @@ export default function Home() {
                     transition={{ delay: 1.5 }}
                     className="absolute top-4 right-4 bg-yellow-400 text-red-800 font-bold py-2 px-4 rounded-md shadow-lg transform -rotate-2 z-20"
                   >
-                    Full access with free account!
+                    More access with free account!
                   </motion.div>
                 </motion.div>
                 

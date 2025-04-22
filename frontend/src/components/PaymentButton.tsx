@@ -54,7 +54,7 @@ export function PaymentButton() {
       size='lg'
       className='bg-green-600 hover:bg-green-700 text-white transition-all duration-300 shadow-lg'
     >
-      {loading ? "Processing..." : "Purchase Full Access - $25 CAD"}
+      {loading ? "Processing..." : "Purchase 7 days Full Access - $25 CAD"}
     </Button>
   )
 }

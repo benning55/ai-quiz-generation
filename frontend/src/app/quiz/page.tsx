@@ -409,7 +409,7 @@ export default function QuizPage() {
                   className="px-6 sm:px-8 py-4 sm:py-5 rounded-xl border-2 w-full"
                   size="lg"
                 >
-                  Sign Up for Full Access
+                  Sign Up for More Access
                 </Button>
               </Link>
             </motion.div>
@@ -759,7 +759,7 @@ export default function QuizPage() {
                     <span className="font-semibold">Limited Access</span>
                   </div>
                   <p className="text-gray-600">
-                    You can try 3 questions for free. Sign in to access all 10 questions and track your progress!
+                    You can try 3 questions for free. Sign in to access all 5 questions and track your progress!
                   </p>
                   <div className="space-y-4">
                     <Button 
@@ -787,7 +787,7 @@ export default function QuizPage() {
                         size="lg"
                         className="w-full border-2 border-red-600 text-red-600 hover:bg-red-50"
                       >
-                        Sign Up for Full Access
+                        Sign Up for More Access
                       </Button>
                     </Link>
                   </div>
