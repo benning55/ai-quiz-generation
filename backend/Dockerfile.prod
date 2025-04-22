@@ -1,46 +1,20 @@
-FROM python:3.10-slim as builder
+FROM python:3.10
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc python3-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Copy requirements and install dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install uvicorn
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl && apt-get clean
 
-# Final stage
-FROM python:3.10-slim
+# ✅ Now copy the full app source code into the image
+COPY . /app
 
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup --system app && \
-    adduser --system --group app && \
-    chown -R app:app /app
-
-# Copy built wheels from builder stage
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
-
-# Install dependencies
-RUN pip install --no-cache /wheels/* && \
-    rm -rf /wheels
-
-# Copy application code
-COPY . .
-
-# Create a health check endpoint
-RUN echo 'from fastapi import FastAPI\nfrom . import app\n\n@app.get("/health")\ndef health_check():\n    return {"status": "healthy"}' >> /app/app/health.py
-
-# Switch to non-root user
-USER app
-
-# Expose the FastAPI port
+# Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Start the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+# Start FastAPI app with Uvicorn (no --reload in production)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -86,12 +86,12 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             # For tags, use the tag version
             VERSION=${GITHUB_REF#refs/tags/}
-            doppler run -- docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$VERSION .
+            doppler run -- docker build -f Dockerfile.prod -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$VERSION .
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$VERSION
           else
             # For branches, use branch name
             BRANCH=${GITHUB_REF#refs/heads/}
-            doppler run -- docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$BRANCH .
+            doppler run -- docker build -f Dockerfile.prod-t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$BRANCH .
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$BRANCH
           fi
 
