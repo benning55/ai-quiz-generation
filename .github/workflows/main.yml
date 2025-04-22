@@ -167,6 +167,9 @@ jobs:
             
             # Pull latest code
             git pull
+
+            # Explicitly set GITHUB_REF from GitHub Actions context
+            export GITHUB_REF='${{ github.ref }}'
             export VERSION=${GITHUB_REF#refs/tags/}
             echo "Start deploying version $VERSION"
 
