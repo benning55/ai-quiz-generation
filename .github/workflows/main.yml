@@ -176,7 +176,7 @@ jobs:
             doppler configure set token "$DOPPLER_TOKEN" --silent
 
             echo "📋 Exporting Doppler environment variables..."
-            eval "$(doppler secrets export --format bash)"
+            eval $(doppler secrets download --format env --no-file | sed 's/^/export /')
 
             # Print all environment variables for debugging
             echo "🔍 Current environment variables:"
