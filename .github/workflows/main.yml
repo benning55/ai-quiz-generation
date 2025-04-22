@@ -170,6 +170,13 @@ jobs:
             export VERSION=${GITHUB_REF#refs/tags/}
             echo "Start deploying version $VERSION"
 
+            # Set required environment variables
+            export REGISTRY=ghcr.io
+            export IMAGE_NAME=${{ github.repository }}
+            echo "Using registry: $REGISTRY"
+            echo "Using image name: $IMAGE_NAME"
+            echo "Using version: $VERSION"
+
             # Configure Doppler and export environment variables
             echo "🔍 Configuring Doppler..."
             export DOPPLER_TOKEN='${{ secrets.DOPPLER_TOKEN }}'
@@ -188,10 +195,12 @@ jobs:
 
             # Pull and start services with environment variables
             echo "📦 Pulling latest images..."
+            echo "Pulling backend: $REGISTRY/$IMAGE_NAME/backend:$VERSION"
+            echo "Pulling frontend: $REGISTRY/$IMAGE_NAME/frontend:$VERSION"
             docker-compose -f docker-compose.prod.yml pull
 
             echo "🚀 Starting services with environment variables..."
-            doppler run -- docker-compose -f docker-compose.prod.yml up -d
+            docker-compose -f docker-compose.prod.yml up -d
 
             # Clean up unused images
             echo "🧹 Cleaning up unused Docker images..."
