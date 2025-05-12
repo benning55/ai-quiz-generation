@@ -98,7 +98,7 @@ export default function Home() {
                 animate="visible"
                 className="md:w-1/2 text-white"
               >
-                <motion.div 
+                {/* <motion.div 
                   variants={itemVariants} 
                   className="flex items-center mb-6 space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full w-fit"
                 >
@@ -110,7 +110,7 @@ export default function Home() {
                     ))}
                   </div>
                   <span className="text-white text-sm font-medium">12,000+ successful citizenship tests</span>
-                </motion.div>
+                </motion.div> */}
                 
                 <motion.h1 
                   variants={itemVariants}
