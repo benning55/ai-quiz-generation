@@ -203,6 +203,7 @@ jobs:
             docker-compose -f docker-compose.prod.yml pull
 
             echo "🚀 Starting services with environment variables..."
+            docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d
 
             # Clean up unused images

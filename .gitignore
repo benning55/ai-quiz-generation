@@ -165,3 +165,4 @@ media/**
 static/**
 !static/.gitkeep
 frontend-pv/node_modules/*
+Server1_key.pem
