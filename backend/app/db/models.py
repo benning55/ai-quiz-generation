@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, ARRAY, JSON, ForeignKey, D
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from datetime import datetime, timedelta
-from .db import Base  # Import Base from db.py to link models to the database
+from .database import Base  # Import Base from the new database.py
 
 class User(Base):
     __tablename__ = "users"
