@@ -11,8 +11,31 @@ const inter = Inter({ subsets: ["latin"] })
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 export const metadata: Metadata = {
-  title: "CanCitizenTest - Canadian Citizenship Test Practice",
-  description: "Practice for your Canadian citizenship test with our AI-powered quiz generator. Study smarter and prepare to pass your citizenship exam.",
+  title: "CanCitizenTest - Canadian Citizenship Practice",
+  description: "Master the Canadian Citizenship Test with AI-powered practice quizzes. Study smarter and pass with confidence.",
+  manifest: "/manifest.json",
+  themeColor: "#dc2626",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CanCitizenTest",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "CanCitizenTest",
+    "mobile-web-app-capable": "yes",
+  },
 }
 
 export default function RootLayout({
@@ -24,12 +47,37 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <head>
-          <link rel="icon" href="/favicon.ico" />
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="CanCitizenTest" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="theme-color" content="#dc2626" />
+          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+          <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+          <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
         </head>
         <body className={inter.className}>
           <ClerkSync />
           <AuthProvider>
             {children}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                      navigator.serviceWorker.register('/sw.js')
+                        .then(function(registration) {
+                          console.log('SW registered: ', registration);
+                        })
+                        .catch(function(registrationError) {
+                          console.log('SW registration failed: ', registrationError);
+                        });
+                    });
+                  }
+                `,
+              }}
+            />
           </AuthProvider>
         </body>
       </html>

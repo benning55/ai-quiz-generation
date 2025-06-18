@@ -1,0 +1,25 @@
+# CanCitizenTest Icon - 128x128
+# 
+# This is a placeholder for the 128x128 PWA icon.
+# 
+# Design Guidelines:
+# - Primary color: Red gradient (#dc2626 to #b91c1c)
+# - Accent color: Yellow/Amber (#fbbf24 to #f59e0b) for maple leaf
+# - White text and borders for contrast
+# - Canadian maple leaf as the main symbol
+# - "CC" text for CanCitizenTest branding
+# 
+# To create the actual icon:
+# 1. Use the SVG version as a reference: icon-128x128.svg
+# 2. Convert to PNG using:
+#    - Online tools: realfavicongenerator.net
+#    - Design software: Figma, Adobe Illustrator, Sketch
+#    - Command line: ImageMagick, Inkscape
+# 3. Ensure the PNG has transparent background
+# 4. Test on various devices to ensure good visibility
+# 
+# The icon should represent:
+# - Canadian citizenship theme
+# - Professional, trustworthy appearance
+# - Good contrast for small sizes
+# - Consistent with website branding

@@ -446,249 +446,259 @@ export default function QuizPage() {
     </motion.div>
   );
 
-  const renderQuizQuestion = () => (
-    <motion.div
-      key={`question-${currentQuestionIndex}`}
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.4 }}
-      className="py-8 relative"
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl text-sm shadow-sm">
-            Question {currentQuestionIndex + 1} of {quiz.length}
+  const renderQuizQuestion = () => {
+    const currentQuestion = quiz[currentQuestionIndex];
+    const progress = ((currentQuestionIndex + 1) / quiz.length) * 100;
+    
+    // Safety check - if no current question, show loading
+    if (!currentQuestion) {
+      return renderLoadingScreen();
+    }
+    
+    return (
+      <motion.div
+        key={`question-${currentQuestionIndex}`}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.4 }}
+        className="py-8 relative"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl text-sm shadow-sm">
+              Question {currentQuestionIndex + 1} of {quiz.length}
+            </div>
+            
+            {score > 0 && (
+              <div className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl text-sm shadow-sm">
+                Score: {score}
+              </div>
+            )}
           </div>
           
-          {score > 0 && (
-            <div className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl text-sm shadow-sm">
-              Score: {score}
-            </div>
-          )}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl">
+            <Timer className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">{formatTime(seconds)}</span>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl">
-          <Timer className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">{formatTime(seconds)}</span>
-        </div>
-      </div>
-      
-      <Progress 
-        value={((currentQuestionIndex + 1) / quiz.length) * 100} 
-        className="h-2 mb-8 bg-gray-100"
-      />
-      
-      <Card className="shadow-xl border-0 overflow-hidden bg-gradient-to-br from-white to-gray-50">
-        <div className="absolute right-0 top-0 w-40 h-40 bg-red-50 rounded-full -mt-20 -mr-20 opacity-30" />
-        <div className="absolute left-0 bottom-0 w-32 h-32 bg-blue-50 rounded-full -mb-16 -ml-16 opacity-30" />
+        <Progress 
+          value={((currentQuestionIndex + 1) / quiz.length) * 100} 
+          className="h-2 mb-8 bg-gray-100"
+        />
         
-        <CardHeader className="relative z-10 p-8">
-          <CardTitle className="text-2xl text-gray-800">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="font-bold"
-            >
-              {quiz[currentQuestionIndex].question}
-            </motion.div>
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent className="space-y-4 relative z-10 px-8">
-          {quiz[currentQuestionIndex].type === "multiple_choice" && quiz[currentQuestionIndex].options ? (
-            <motion.div
-              variants={{
-                hidden: { opacity: 0 },
-                show: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.07
-                  }
-                }
-              }}
-              initial="hidden"
-              animate="show"
-              className="space-y-3"
-            >
-              {quiz[currentQuestionIndex].options.map((option, index) => (
-                <motion.div
-                  key={index}
-                  variants={{
-                    hidden: { opacity: 0, y: 10 },
-                    show: { opacity: 1, y: 0 }
-                  }}
-                >
-                  <Button
-                    variant={selectedOption === option 
-                      ? (showAnswer 
-                          ? (option === quiz[currentQuestionIndex].answer ? "default" : "destructive") 
-                          : "default") 
-                      : "outline"}
-                    className={`w-full justify-start text-left p-6 h-auto relative overflow-hidden whitespace-normal break-words rounded-xl text-base ${
-                      showAnswer && option === quiz[currentQuestionIndex].answer 
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
-                        : showAnswer && selectedOption === option
-                          ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
-                          : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                    }`}
-                    onClick={() => handleOptionSelect(option)}
-                    disabled={showAnswer}
-                  >
-                    <div className="flex items-start gap-3 z-10 relative">
-                      <div className="flex-shrink-0 mt-0.5">
-                        {showAnswer && option === quiz[currentQuestionIndex].answer && (
-                          <CheckCircle className="text-white w-5 h-5" />
-                        )}
-                        {showAnswer && selectedOption === option && option !== quiz[currentQuestionIndex].answer && (
-                          <XCircle className="text-white w-5 h-5" />
-                        )}
-                      </div>
-                      <span className="flex-1">{option}</span>
-                    </div>
-                    
-                    {showAnswer && option === quiz[currentQuestionIndex].answer && (
-                      <motion.div 
-                        className="absolute inset-0 bg-white opacity-10"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: 0 }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    )}
-                  </Button>
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : quiz[currentQuestionIndex].type === "true_false" ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-4 justify-center"
-            >
-              <Button
-                variant={selectedOption === "true" 
-                  ? (showAnswer 
-                      ? (quiz[currentQuestionIndex].answer === true ? "default" : "destructive") 
-                      : "default") 
-                  : "outline"}
-                className={`w-1/2 justify-center p-6 h-auto relative overflow-hidden rounded-xl text-lg font-medium ${
-                  showAnswer && quiz[currentQuestionIndex].answer === true
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
-                    : showAnswer && selectedOption === "true"
-                      ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
-                      : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                }`}
-                onClick={() => handleOptionSelect("true")}
-                disabled={showAnswer}
-              >
-                <div className="flex items-center gap-2 z-10 relative">
-                  {showAnswer && quiz[currentQuestionIndex].answer === true && (
-                    <CheckCircle className="text-white w-5 h-5 mr-1" />
-                  )}
-                  {showAnswer && selectedOption === "true" && quiz[currentQuestionIndex].answer !== true && (
-                    <XCircle className="text-white w-5 h-5 mr-1" />
-                  )}
-                  True
-                </div>
-              </Button>
-              
-              <Button
-                variant={selectedOption === "false" 
-                  ? (showAnswer 
-                      ? (quiz[currentQuestionIndex].answer === false ? "default" : "destructive") 
-                      : "default") 
-                  : "outline"}
-                className={`w-1/2 justify-center p-6 h-auto relative overflow-hidden rounded-xl text-lg font-medium ${
-                  showAnswer && quiz[currentQuestionIndex].answer === false
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
-                    : showAnswer && selectedOption === "false"
-                      ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
-                      : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                }`}
-                onClick={() => handleOptionSelect("false")}
-                disabled={showAnswer}
-              >
-                <div className="flex items-center gap-2 z-10 relative">
-                  {showAnswer && quiz[currentQuestionIndex].answer === false && (
-                    <CheckCircle className="text-white w-5 h-5 mr-1" />
-                  )}
-                  {showAnswer && selectedOption === "false" && quiz[currentQuestionIndex].answer !== false && (
-                    <XCircle className="text-white w-5 h-5 mr-1" />
-                  )}
-                  False
-                </div>
-              </Button>
-            </motion.div>
-          ) : null}
+        <Card className="shadow-xl border-0 overflow-hidden bg-gradient-to-br from-white to-gray-50">
+          <div className="absolute right-0 top-0 w-40 h-40 bg-red-50 rounded-full -mt-20 -mr-20 opacity-30" />
+          <div className="absolute left-0 bottom-0 w-32 h-32 bg-blue-50 rounded-full -mb-16 -ml-16 opacity-30" />
           
-          <AnimatePresence>
-            {feedback && (
+          <CardHeader className="relative z-10 p-8">
+            <CardTitle className="text-2xl text-gray-800">
               <motion.div
-                initial={{ opacity: 0, y: 5 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={`mt-6 p-4 rounded-xl ${
-                  feedback === "correct" 
-                    ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700 border border-green-200" 
-                    : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 border border-red-200"
-                } flex items-center gap-3`}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="font-bold"
               >
-                {feedback === "correct" ? (
-                  <>
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-white" />
+                {currentQuestion.question}
+              </motion.div>
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent className="space-y-4 relative z-10 px-8">
+            {currentQuestion.type === "multiple_choice" && currentQuestion.options ? (
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.07
+                    }
+                  }
+                }}
+                initial="hidden"
+                animate="show"
+                className="space-y-3"
+              >
+                {currentQuestion.options.map((option, index) => (
+                  <motion.div
+                    key={index}
+                    variants={{
+                      hidden: { opacity: 0, y: 10 },
+                      show: { opacity: 1, y: 0 }
+                    }}
+                  >
+                    <Button
+                      variant={selectedOption === option 
+                        ? (showAnswer 
+                            ? (option === currentQuestion.answer ? "default" : "destructive") 
+                            : "default") 
+                        : "outline"}
+                      className={`w-full justify-start text-left p-6 h-auto relative overflow-hidden whitespace-normal break-words rounded-xl text-base ${
+                        showAnswer && option === currentQuestion.answer 
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
+                          : showAnswer && selectedOption === option
+                            ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
+                            : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                      }`}
+                      onClick={() => handleOptionSelect(option)}
+                      disabled={showAnswer}
+                    >
+                      <div className="flex items-start gap-3 z-10 relative">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {showAnswer && option === currentQuestion.answer && (
+                            <CheckCircle className="text-white w-5 h-5" />
+                          )}
+                          {showAnswer && selectedOption === option && option !== currentQuestion.answer && (
+                            <XCircle className="text-white w-5 h-5" />
+                          )}
+                        </div>
+                        <span className="flex-1">{option}</span>
+                      </div>
+                      
+                      {showAnswer && option === currentQuestion.answer && (
+                        <motion.div 
+                          className="absolute inset-0 bg-white opacity-10"
+                          initial={{ x: '-100%' }}
+                          animate={{ x: 0 }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      )}
+                    </Button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : currentQuestion.type === "true_false" ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex gap-4 justify-center"
+              >
+                <Button
+                  variant={selectedOption === "true" 
+                    ? (showAnswer 
+                        ? (currentQuestion.answer === true ? "default" : "destructive") 
+                        : "default") 
+                    : "outline"}
+                  className={`w-1/2 justify-center p-6 h-auto relative overflow-hidden rounded-xl text-lg font-medium ${
+                    showAnswer && currentQuestion.answer === true
+                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
+                      : showAnswer && selectedOption === "true"
+                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
+                        : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                  }`}
+                  onClick={() => handleOptionSelect("true")}
+                  disabled={showAnswer}
+                >
+                  <div className="flex items-center gap-2 z-10 relative">
+                    {showAnswer && currentQuestion.answer === true && (
+                      <CheckCircle className="text-white w-5 h-5 mr-1" />
+                    )}
+                    {showAnswer && selectedOption === "true" && currentQuestion.answer !== true && (
+                      <XCircle className="text-white w-5 h-5 mr-1" />
+                    )}
+                    True
+                  </div>
+                </Button>
+                
+                <Button
+                  variant={selectedOption === "false" 
+                    ? (showAnswer 
+                        ? (currentQuestion.answer === false ? "default" : "destructive") 
+                        : "default") 
+                    : "outline"}
+                  className={`w-1/2 justify-center p-6 h-auto relative overflow-hidden rounded-xl text-lg font-medium ${
+                    showAnswer && currentQuestion.answer === false
+                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 border-0" 
+                      : showAnswer && selectedOption === "false"
+                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 border-0"
+                        : "hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                  }`}
+                  onClick={() => handleOptionSelect("false")}
+                  disabled={showAnswer}
+                >
+                  <div className="flex items-center gap-2 z-10 relative">
+                    {showAnswer && currentQuestion.answer === false && (
+                      <CheckCircle className="text-white w-5 h-5 mr-1" />
+                    )}
+                    {showAnswer && selectedOption === "false" && currentQuestion.answer !== false && (
+                      <XCircle className="text-white w-5 h-5 mr-1" />
+                    )}
+                    False
+                  </div>
+                </Button>
+              </motion.div>
+            ) : null}
+            
+            <AnimatePresence>
+              {feedback && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={`mt-6 p-4 rounded-xl ${
+                    feedback === "correct" 
+                      ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700 border border-green-200" 
+                      : "bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700 border border-red-200"
+                  } flex items-center gap-3`}
+                >
+                  {feedback === "correct" ? (
+                    <>
+                      <div className="p-2 bg-green-500 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-medium">Correct answer!</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="p-2 bg-red-500 rounded-lg">
+                        <XCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-medium">
+                        Incorrect! The correct answer is: {
+                          currentQuestion.type === "true_false"
+                            ? (currentQuestion.answer ? "True" : "False")
+                            : currentQuestion.answer
+                        }
+                      </span>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+          
+          <CardFooter className="flex justify-end gap-3 p-8 relative z-10">
+            {showAnswer && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full sm:w-auto"
+              >
+                <Button 
+                  onClick={handleNextQuestion}
+                  className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold"
+                >
+                  {currentQuestionIndex < quiz.length - 1 ? (
+                    <div className="flex items-center gap-2">
+                      Next Question
+                      <ChevronsRight className="w-5 h-5" />
                     </div>
-                    <span className="font-medium">Correct answer!</span>
-                  </>
-                ) : (
-                  <>
-                    <div className="p-2 bg-red-500 rounded-lg">
-                      <XCircle className="w-5 h-5 text-white" />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      Complete Quiz
+                      <Trophy className="w-5 h-5" />
                     </div>
-                    <span className="font-medium">
-                      Incorrect! The correct answer is: {
-                        quiz[currentQuestionIndex].type === "true_false"
-                          ? (quiz[currentQuestionIndex].answer ? "True" : "False")
-                          : quiz[currentQuestionIndex].answer
-                      }
-                    </span>
-                  </>
-                )}
+                  )}
+                </Button>
               </motion.div>
             )}
-          </AnimatePresence>
-        </CardContent>
-        
-        <CardFooter className="flex justify-end gap-3 p-8 relative z-10">
-          {showAnswer && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="w-full sm:w-auto"
-            >
-              <Button 
-                onClick={handleNextQuestion}
-                className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold"
-              >
-                {currentQuestionIndex < quiz.length - 1 ? (
-                  <div className="flex items-center gap-2">
-                    Next Question
-                    <ChevronsRight className="w-5 h-5" />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    Complete Quiz
-                    <Trophy className="w-5 h-5" />
-                  </div>
-                )}
-              </Button>
-            </motion.div>
-          )}
-        </CardFooter>
-      </Card>
-    </motion.div>
-  );
+          </CardFooter>
+        </Card>
+      </motion.div>
+    );
+  };
 
   if (!hasStarted) {
     return (
