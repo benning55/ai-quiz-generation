@@ -20,6 +20,7 @@ async def health_check():
 # Text Extraction Endpoint
 #
 @router.post("/extract-text")
+@router.post("/extract-text/")
 async def extract_text_endpoint(file: UploadFile = File(...), db: Session = Depends(get_db)):
     # This endpoint now handles file upload and calls the service for extraction and quiz generation.
     extraction_result = await service.extract_text_from_file(db, file)
@@ -46,18 +47,20 @@ def get_flashcard_endpoint(flashcard_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Flashcard not found")
     return flashcard
 
-@router.post("/flashcards/", response_model=schemas.Flashcard)
+@router.post("/flashcards/")
 def create_flashcard_endpoint(flashcard: schemas.FlashcardCreate, db: Session = Depends(get_db)):
     return service.create_flashcard(db, flashcard)
 
 @router.post("/import-flashcards-json")
+@router.post("/import-flashcards-json/")
 async def import_flashcards_endpoint(data: schemas.FlashcardsImport, db: Session = Depends(get_db)):
     return service.import_flashcards_from_json(db, data.flashcards)
 
 #
 # User and Authentication Endpoints
 #
-@router.get("/user", response_model=schemas.UserInfoResponse)
+@router.get("/user")
+@router.get("/user/")
 async def get_current_user_info(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
     active_payment = service.get_user_active_payment(db, current_user.id)
     user_status = schemas.UserStatus(has_active_payment=bool(active_payment))
@@ -71,13 +74,16 @@ async def get_current_user_info(current_user: db_models.User = Depends(service.g
 # Quiz Generation Endpoint
 #
 @router.post("/generate-quiz-from-flashcards")
+@router.post("/generate-quiz-from-flashcards/")
 async def generate_quiz_from_flashcards_endpoint(request: schemas.QuizRequest, db: Session = Depends(get_db)):
-    return service.generate_quiz_from_flashcards_service(db, request)
+    quiz_data = service.generate_quiz_from_flashcards_service(db, request)
+    return {"quiz": quiz_data}
 
 #
 # Payment Endpoints
 #
 @router.post("/create-checkout-session")
+@router.post("/create-checkout-session/")
 async def create_checkout_session_endpoint(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
     return service.create_stripe_checkout_session(current_user, db)
 
@@ -85,9 +91,11 @@ async def create_checkout_session_endpoint(current_user: db_models.User = Depend
 # Webhook Endpoints
 #
 @router.post("/webhooks/clerk")
+@router.post("/webhooks/clerk/")
 async def clerk_webhook_endpoint(request: Request, db: Session = Depends(get_db)):
     return await service.handle_clerk_webhook(request, db)
 
 @router.post("/webhooks/stripe")
+@router.post("/webhooks/stripe/")
 async def stripe_webhook_endpoint(request: Request, db: Session = Depends(get_db)):
     return await service.handle_stripe_webhook(request, db) 

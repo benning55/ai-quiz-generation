@@ -97,16 +97,18 @@ export default function QuizPage() {
 
       const data = await response.json();
       
-      if (data.questions && data.questions.quiz && Array.isArray(data.questions.quiz)) {
-        const filteredQuiz = data.questions.quiz.filter(
+      const quizQuestions = data?.quiz?.quiz;
+
+      if (Array.isArray(quizQuestions)) {
+        const filteredQuiz = quizQuestions.filter(
           (question: QuizQuestion) => question.type !== "short_answer"
         );
         setQuiz(filteredQuiz);
         setUserStatus(data.user_status || { has_active_payment: false });
         setIsSignedIn(!!userId);
       } else {
-        console.error('Unexpected quiz format:', data);
-        setQuiz([]);
+        console.error("Unexpected quiz format: ", data);
+        alert("Couldn't load quiz questions. The format was unexpected.");
       }
       
     } catch (error) {
