@@ -91,7 +91,7 @@ export default function StudyGuide() {
               >
                 <Link href="/quiz">
                   <Button size="lg" className="bg-white text-red-700 hover:bg-yellow-50 hover:text-red-800 transition-all duration-300 shadow-lg">
-                    Start Practice Test →
+                    Start Practice Test
                   </Button>
                 </Link>
                 <SignedOut>
@@ -264,7 +264,7 @@ export default function StudyGuide() {
             >
               <Link href="/quiz">
                 <Button size="lg" className="bg-white text-red-700 hover:bg-yellow-50 hover:text-red-800 transition-all duration-300 shadow-lg">
-                  Start Practice Test →
+                  Start Practice Test
                 </Button>
               </Link>
               <SignedOut>

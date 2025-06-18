@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const { isAdmin } = useAuth()
 
   // Check if on home page
   const isHomePage = pathname === '/'
@@ -201,37 +203,39 @@ export const Header = () => {
                 ))}
 
                 <SignedIn>
-                  <motion.div variants={navItemVariants}>
-                    <Link
-                      href='/admin'
-                      className={`px-4 py-2 rounded-full text-sm font-medium ${
-                        pathname === "/admin"
-                          ? scrolled || !isHomePage
-                            ? "text-red-600"
-                            : "text-yellow-300"
-                          : scrolled || !isHomePage
-                          ? "text-gray-700 hover:text-red-600"
-                          : "text-white/90 hover:text-white"
-                      }`}
-                    >
-                      {pathname === "/admin" && (
-                        <motion.span
-                          layoutId='navbar-indicator'
-                          className={`absolute inset-0 rounded-full -z-10 ${
-                            scrolled || !isHomePage
-                              ? "bg-red-50"
-                              : "bg-white/10"
-                          }`}
-                          transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 30,
-                          }}
-                        />
-                      )}
-                      Admin
-                    </Link>
-                  </motion.div>
+                  {isAdmin && (
+                    <motion.div variants={navItemVariants}>
+                      <Link
+                        href='/admin'
+                        className={`px-4 py-2 rounded-full text-sm font-medium ${
+                          pathname === "/admin"
+                            ? scrolled || !isHomePage
+                              ? "text-red-600"
+                              : "text-yellow-300"
+                            : scrolled || !isHomePage
+                            ? "text-gray-700 hover:text-red-600"
+                            : "text-white/90 hover:text-white"
+                        }`}
+                      >
+                        {pathname === "/admin" && (
+                          <motion.span
+                            layoutId='navbar-indicator'
+                            className={`absolute inset-0 rounded-full -z-10 ${
+                              scrolled || !isHomePage
+                                ? "bg-red-50"
+                                : "bg-white/10"
+                            }`}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                        Admin
+                      </Link>
+                    </motion.div>
+                  )}
                 </SignedIn>
               </motion.div>
 
@@ -422,24 +426,26 @@ export const Header = () => {
                   ))}
 
                   <SignedIn>
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, x: -20 },
-                        visible: { opacity: 1, x: 0 },
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Link
-                        href='/admin'
-                        className={`block p-3 text-lg font-medium rounded-lg ${
-                          pathname === "/admin"
-                            ? "bg-white/20 text-white"
-                            : "text-white/80 hover:bg-white/10"
-                        }`}
+                    {isAdmin && (
+                      <motion.div
+                        variants={{
+                          hidden: { opacity: 0, x: -20 },
+                          visible: { opacity: 1, x: 0 },
+                        }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        Admin
-                      </Link>
-                    </motion.div>
+                        <Link
+                          href='/admin'
+                          className={`block p-3 text-lg font-medium rounded-lg ${
+                            pathname === "/admin"
+                              ? "bg-white/20 text-white"
+                              : "text-white/80 hover:bg-white/10"
+                          }`}
+                        >
+                          Admin
+                        </Link>
+                      </motion.div>
+                    )}
                   </SignedIn>
 
                   <motion.div

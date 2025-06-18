@@ -257,19 +257,40 @@ def create_payment(db: Session, user_id: int, stripe_id: str, amount: int, statu
     db.add(payment)
     db.commit()
 
-def create_stripe_checkout_session(user: db_models.User, db: Session):
+def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str = "1month"):
     # Check if user already has an active subscription
     if get_user_active_payment(db, user.id):
         raise HTTPException(status_code=400, detail="User already has an active subscription.")
+
+    # Define pricing tiers
+    pricing_tiers = {
+        "7days": {
+            "amount": 2900,  # $29.00 CAD in cents
+            "currency": "cad",
+            "name": "7-Day Premium Access",
+            "duration_days": 7
+        },
+        "1month": {
+            "amount": 3900,  # $39.00 CAD in cents
+            "currency": "cad", 
+            "name": "1-Month Premium Access",
+            "duration_days": 30
+        }
+    }
+    
+    if tier not in pricing_tiers:
+        raise HTTPException(status_code=400, detail="Invalid pricing tier")
+    
+    tier_config = pricing_tiers[tier]
 
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'usd',
-                    'product_data': {'name': 'Premium Membership'},
-                    'unit_amount': 1000, # $10.00
+                    'currency': tier_config['currency'],
+                    'product_data': {'name': tier_config['name']},
+                    'unit_amount': tier_config['amount'],
                 },
                 'quantity': 1,
             }],
@@ -277,7 +298,11 @@ def create_stripe_checkout_session(user: db_models.User, db: Session):
             success_url='http://localhost:3000/dashboard?payment_success=true',
             cancel_url='http://localhost:3000/dashboard?payment_canceled=true',
             customer_email=user.email,
-            metadata={'user_id': user.id}
+            metadata={
+                'user_id': user.id,
+                'tier': tier,
+                'duration_days': str(tier_config['duration_days'])
+            }
         )
         return {"sessionId": checkout_session.id}
     except Exception as e:
@@ -340,10 +365,12 @@ async def handle_stripe_webhook(request: Request, db: Session):
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         user_id = session.get('metadata', {}).get('user_id')
+        tier = session.get('metadata', {}).get('tier', '1month')
+        duration_days = int(session.get('metadata', {}).get('duration_days', '30'))
         
         if user_id:
             # Payment successful, grant access
-            expires_at = datetime.utcnow() + timedelta(days=30)
+            expires_at = datetime.utcnow() + timedelta(days=duration_days)
             create_payment(
                 db=db,
                 user_id=int(user_id),

@@ -84,8 +84,18 @@ async def generate_quiz_from_flashcards_endpoint(request: schemas.QuizRequest, d
 #
 @router.post("/create-checkout-session")
 @router.post("/create-checkout-session/")
-async def create_checkout_session_endpoint(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
-    return service.create_stripe_checkout_session(current_user, db)
+async def create_checkout_session_endpoint(
+    request: Request,
+    current_user: db_models.User = Depends(service.get_current_user), 
+    db: Session = Depends(get_db)
+):
+    try:
+        body = await request.json()
+        tier = body.get("tier", "1month")
+    except:
+        tier = "1month"
+    
+    return service.create_stripe_checkout_session(current_user, db, tier)
 
 #
 # Webhook Endpoints

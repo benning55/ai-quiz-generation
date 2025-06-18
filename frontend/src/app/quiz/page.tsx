@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useAuth, SignedIn, SignedOut } from "@clerk/nextjs"
+import { useAuth as useClerkAuth, SignedIn, SignedOut } from "@clerk/nextjs"
 import Link from 'next/link'
 import { Header } from '@/sections/Header'
 import { motion, AnimatePresence } from "framer-motion"
@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress"
 import confetti from 'canvas-confetti'
 import { PaymentButton } from '@/components/PaymentButton'
 import { API_ENDPOINTS } from '@/config/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 type QuizQuestion = {
   question: string;
@@ -27,7 +28,8 @@ type QuizData = {
 }
 
 export default function QuizPage() {
-  const { isLoaded, userId, getToken } = useAuth();
+  const { userData, setUserData, isLoading: authLoading } = useAuth();
+  const { userId, getToken } = useClerkAuth();
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLimited, setIsLimited] = useState(false);
@@ -40,7 +42,6 @@ export default function QuizPage() {
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [userStatus, setUserStatus] = useState<{ has_active_payment: boolean } | null>(null);
   const [userAnswers, setUserAnswers] = useState<(string | boolean | null)[]>([]);
   const [answerResults, setAnswerResults] = useState<boolean[]>([]);
   const [showSummary, setShowSummary] = useState(false);
@@ -80,7 +81,7 @@ export default function QuizPage() {
         }
       }
 
-      const questions_amount = userStatus?.has_active_payment
+      const questions_amount = userData?.has_active_payment
         ? 20
         : userId
         ? 5
@@ -104,7 +105,6 @@ export default function QuizPage() {
           (question: QuizQuestion) => question.type !== "short_answer"
         );
         setQuiz(filteredQuiz);
-        setUserStatus(data.user_status || { has_active_payment: false });
         setIsSignedIn(!!userId);
       } else {
         console.error("Unexpected quiz format: ", data);
@@ -116,7 +116,7 @@ export default function QuizPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, getToken]);
+  }, [userId, getToken, userData]);
 
   // Start a timer when the quiz starts
   useEffect(() => {
@@ -130,34 +130,6 @@ export default function QuizPage() {
     
     return () => clearInterval(interval);
   }, [isLoading, quiz.length, quizCompleted]);
-
-
-  const fetchUser = async () => {
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-
-    // Add auth token if user is signed in
-    if (userId) {
-      const token = await getToken();
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-    } else {
-      return
-    }
-    const response = await fetch(API_ENDPOINTS.USER, {
-      method: "GET",
-      headers: headers
-    })
-    const data = await response.json()
-    setUserStatus(data.user_status)
-  }
-
-  // Load the quiz when component mounts
-  useEffect(() => {
-    fetchUser()
-  }, []);
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quiz.length - 1) {
@@ -802,7 +774,7 @@ export default function QuizPage() {
                     </Link>
                   </div>
                 </div>
-              ) : userStatus === null ? (
+              ) : userData === null ? (
                 <div className='bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6 animate-pulse'>
                   <div className='flex items-center justify-center gap-3'>
                     <div className='w-6 h-6 bg-gray-200 rounded-full' />
@@ -815,7 +787,7 @@ export default function QuizPage() {
                     <div className='h-12 w-full bg-gray-200 rounded' />
                   </div>
                 </div>
-              ) : !userStatus.has_active_payment ? (
+              ) : !userData.has_active_payment ? (
                 <div className='bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6'>
                   <div className='flex items-center justify-center gap-3 text-blue-600'>
                     <Sparkles className='w-6 h-6' />
@@ -881,153 +853,14 @@ export default function QuizPage() {
                 </div>
               )}
             </motion.div>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-16'>
-              {/* 7-Day Access */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className='relative'
-              >
-                <Card className='group border-0 shadow-lg overflow-hidden bg-gradient-to-br from-white to-yellow-50/30 hover:shadow-2xl transition-all duration-300 rounded-2xl transform hover:-translate-y-1'>
-                  <div className='absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                  <CardHeader className='bg-gradient-to-br from-yellow-50 to-yellow-100/50 p-8 text-center relative'>
-                    <span className='inline-block px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-sm font-semibold rounded-full shadow-sm'>
-                      Starter Plan
-                    </span>
-                    <CardTitle className='text-2xl font-bold text-gray-800 mt-3 mb-1'>
-                      7-Day Access
-                    </CardTitle>
-                    <p className='text-gray-600 text-sm'>
-                      Great for short-term practice with unlimited quiz
-                      attempts.
-                    </p>
-                  </CardHeader>
-                  <CardContent className='p-8'>
-                    <div className='flex items-baseline justify-center mb-4'>
-                      <span className='text-4xl font-bold text-gray-900'>
-                        $25
-                      </span>
-                    </div>
-                    <div className='bg-yellow-50 text-yellow-600 text-xs font-semibold py-1.5 px-3 rounded-full w-fit mx-auto mb-6'>
-                      7 Days Access
-                    </div>
-                    <ul className='space-y-3 text-sm text-gray-600'>
-                      <li className='flex items-center bg-white/50 p-2 rounded-lg'>
-                        <CheckCircle className='w-5 h-5 text-green-500 mr-3 flex-shrink-0' />
-                        <span>100+ Practice Questions</span>
-                      </li>
-                      <li className='flex items-center bg-white/50 p-2 rounded-lg'>
-                        <CheckCircle className='w-5 h-5 text-green-500 mr-3 flex-shrink-0' />
-                        <span>Unlimited Quiz Attempts</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter className='p-8 bg-gradient-to-br from-gray-50 to-transparent'>
-                    <div className='space-y-3 w-full'>
-                      <Button className='w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold'>
-                        Get Instant Access
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </motion.div>
 
-              {/* 1-Month Access */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className='relative'
-              >
-                <Card className='group border-0 shadow-lg overflow-hidden bg-gradient-to-br from-white to-red-50/30 hover:shadow-2xl transition-all duration-300 rounded-2xl transform hover:-translate-y-1'>
-                  <div className='absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                  <CardHeader className='bg-gradient-to-br from-red-50 to-red-100/50 p-8 text-center relative'>
-                    <span className='inline-block px-4 py-1.5 bg-gradient-to-r from-red-600 to-red-400 text-white text-sm font-semibold rounded-full shadow-sm'>
-                      Most Popular
-                    </span>
-                    <CardTitle className='text-2xl font-bold text-gray-800 mt-3 mb-1'>
-                      1-Month Access
-                    </CardTitle>
-                    <p className='text-gray-600 text-sm'>
-                      Boost your knowledge with curated study content and
-                      quizzes.
-                    </p>
-                  </CardHeader>
-                  <CardContent className='p-8'>
-                    <div className='flex items-baseline justify-center mb-4'>
-                      <span className='text-4xl font-bold text-gray-900'>
-                        $39
-                      </span>
-                    </div>
-                    <div className='bg-red-50 text-red-600 text-xs font-semibold py-1.5 px-3 rounded-full w-fit mx-auto mb-6'>
-                      1 Month Access
-                    </div>
-                    <ul className='space-y-3 text-sm text-gray-600'>
-                      <li className='flex items-center bg-white/50 p-2 rounded-lg'>
-                        <CheckCircle className='w-5 h-5 text-green-500 mr-3 flex-shrink-0' />
-                        <span>100+ Practice Questions</span>
-                      </li>
-                      <li className='flex items-center bg-white/50 p-2 rounded-lg'>
-                        <CheckCircle className='w-5 h-5 text-green-500 mr-3 flex-shrink-0' />
-                        <span>Study Guides & Learning Content</span>
-                      </li>
-                      <li className='flex items-center bg-white/50 p-2 rounded-lg'>
-                        <CheckCircle className='w-5 h-5 text-green-500 mr-3 flex-shrink-0' />
-                        <span>Unlimited Quiz Attempts</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter className='p-8 bg-gradient-to-br from-gray-50 to-transparent'>
-                    <div className='space-y-3 w-full'>
-                      <Button className='w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold'>
-                        Get Instant Access
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-
-              {/* Coming Soon */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className='relative'
-              >
-                <Card className='group border-0 shadow-lg overflow-hidden bg-gradient-to-br from-white to-gray-50/30 hover:shadow-2xl transition-all duration-300 rounded-2xl transform hover:-translate-y-1'>
-                  <div className='absolute inset-0 bg-gradient-to-r from-gray-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                  <CardHeader className='bg-gradient-to-br from-gray-50 to-gray-100/50 p-8 text-center relative'>
-                    <CardTitle className='text-2xl font-bold text-gray-800 mt-3 mb-1'>
-                      Lifetime Access
-                    </CardTitle>
-                    <p className='text-gray-600 text-sm'>
-                      This plan is coming soon. Stay tuned for more details!
-                    </p>
-                  </CardHeader>
-                  <CardContent className='p-8'>
-                    <div className='flex items-center justify-center mb-4 text-gray-400 text-xl font-semibold'>
-                      Coming Soon
-                    </div>
-                  </CardContent>
-                  <CardFooter className='p-8 bg-gradient-to-br from-gray-50 to-transparent'>
-                    <Button
-                      disabled
-                      className='w-full bg-gray-300 text-gray-600 py-6 rounded-xl cursor-not-allowed'
-                    >
-                      Coming Soon
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            </div>
           </div>
         </main>
       </div>
     )
   }
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return renderLoadingScreen();
   }
 

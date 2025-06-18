@@ -153,12 +153,27 @@ export default function Home() {
                   >
                     <Link href="/quiz">
                       <Button size="lg" className="bg-white text-red-700 hover:bg-yellow-50 hover:text-red-800 transition-all duration-300 shadow-lg">
-                        Start Practice Test →
+                        Start Practice Test
                       </Button>
                     </Link>
                   </motion.div>
                   
-                  <SignedOut>
+                  {/* <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link href="/demo">
+                      <Button 
+                        size="lg" 
+                        variant="outline" 
+                        className="bg-white/10 backdrop-blur-sm border-2 border-white text-white hover:bg-white/30 hover:text-white transition-all duration-300 shadow-lg"
+                      >
+                        Test Auth System
+                      </Button>
+                    </Link>
+                  </motion.div> */}
+                  
+                  {/* <SignedOut>
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -173,7 +188,7 @@ export default function Home() {
                         </Button>
                       </Link>
                     </motion.div>
-                  </SignedOut>
+                  </SignedOut> */}
                 </motion.div>
               </motion.div>
               
