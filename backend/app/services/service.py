@@ -19,7 +19,10 @@ from ..utils import config, file_utils
 
 # Initialize clients
 stripe.api_key = config.STRIPE_SECRET_KEY
-groq_client = Groq(api_key=config.GROQ_API_KEY)
+# Initialize Groq client only if API key is available
+groq_client = None
+if config.GROQ_API_KEY and config.GROQ_API_KEY != "your_groq_api_key_here":
+    groq_client = Groq(api_key=config.GROQ_API_KEY)
 
 #
 # User Services
@@ -172,13 +175,23 @@ def _generate_questions_deepseek(content: str, question_count: int, types_str: s
         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
 def _generate_questions_groq(content: str, question_count: int, types_str: str) -> dict:
-    completion = groq_client.chat.completions.create(
-        model="deepseek-r1-distill-llama-70b",
-        messages=[{"role": "user", "content": _get_quiz_prompt(content, question_count, types_str)}],
-        temperature=0.6, max_completion_tokens=4096, top_p=0.95, stream=False, stop=None
-    )
-    response_text = completion.choices[0].message.content.strip()
-    return _parse_ai_response(response_text)
+    # Check if API key is configured and client is initialized
+    if not groq_client:
+        raise HTTPException(
+            status_code=500, 
+            detail="Groq API key is not configured. Please set the GROQ_API_KEY environment variable."
+        )
+    
+    try:
+        completion = groq_client.chat.completions.create(
+            model="deepseek-r1-distill-llama-70b",
+            messages=[{"role": "user", "content": _get_quiz_prompt(content, question_count, types_str)}],
+            temperature=0.6, max_completion_tokens=4096, top_p=0.95, stream=False, stop=None
+        )
+        response_text = completion.choices[0].message.content.strip()
+        return _parse_ai_response(response_text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Groq API error: {str(e)}")
 
 def _get_quiz_prompt(content: str, question_count: int, types_str: str) -> str:
     # Reusable prompt function

@@ -2,18 +2,37 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+# Pydantic models for Chapters
+class ChapterBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    order: Optional[int] = None
+
+class ChapterCreate(ChapterBase):
+    pass
+
+class Chapter(ChapterBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        orm_mode = True
+
 # Pydantic models for Flashcards
 class FlashcardBase(BaseModel):
     question: str
     answer: str
     tags: Optional[List[str]] = None
     category: Optional[str] = None
+    chapter_id: Optional[int] = None
 
 class FlashcardCreate(FlashcardBase):
     pass
 
 class Flashcard(FlashcardBase):
     id: int
+    chapter: Optional[Chapter] = None
     
     class Config:
         orm_mode = True

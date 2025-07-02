@@ -28,6 +28,23 @@ class Document(Base):
     name = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
 
+class Chapter(Base):
+    __tablename__ = "chapters"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    order = Column(Integer, nullable=True)  # For ordering chapters
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # User relationship (optional - chapters can be global or user-specific)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user = relationship("User")
+    
+    # Relationship to flashcards
+    flashcards = relationship("Flashcard", back_populates="chapter")
+
 class Flashcard(Base):
     __tablename__ = "flashcards"
 
@@ -41,6 +58,10 @@ class Flashcard(Base):
     # User relationship
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     user = relationship("User", back_populates="flashcards")
+    
+    # Chapter relationship (optional)
+    chapter_id = Column(Integer, ForeignKey("chapters.id"), nullable=True)
+    chapter = relationship("Chapter", back_populates="flashcards")
     
     # Relationship to quizzes
     quiz_questions = relationship("QuizQuestion", back_populates="flashcard")
