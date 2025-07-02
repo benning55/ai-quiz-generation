@@ -1,6 +1,8 @@
 import os
 import json
 import re
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+import jwt
 import stripe
 import requests
 import hmac
@@ -12,6 +14,7 @@ from fastapi import Depends, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 from groq import Groq
 
+from ..db.database import get_db
 from .. import db
 from ..db import models as db_models
 from ..models import schemas
@@ -23,6 +26,8 @@ stripe.api_key = config.STRIPE_SECRET_KEY
 groq_client = None
 if config.GROQ_API_KEY and config.GROQ_API_KEY != "your_groq_api_key_here":
     groq_client = Groq(api_key=config.GROQ_API_KEY)
+
+security = HTTPBearer(auto_error=False)
 
 #
 # User Services
@@ -73,29 +78,85 @@ def get_or_create_user(db: Session, user_data: dict) -> db_models.User:
 # Authentication Services
 #
 
-async def get_current_user(request: Request, db: Session = Depends(db.database.get_db)) -> db_models.User:
-    # In a real app, you would validate the Clerk JWT here.
-    # For this refactor, we are simplifying and assuming the header contains the clerk_id.
-    # This is NOT secure and should be replaced with proper JWT validation.
-    clerk_id = request.headers.get("Authorization") 
-    if not clerk_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db),
+    request: Request = None
+):
+    print("==== Authentication Debug ====")
     
-    # In a real app you'd get user info from the validated token payload.
-    # Here we are simulating getting it from a header for simplicity.
-    # For example: user_info_header = request.headers.get("X-User-Info")
-    # user_info = json.loads(user_info_header)
+    # Check for token in Authorization header
+    token = None
+    if credentials:
+        token = credentials.credentials
+        print("Token found in Authorization header")
     
-    # This part is a placeholder for how you might get/create a user.
-    # The actual implementation depends on how you pass user data from the frontend/gateway.
-    # For the webhook-driven approach, the user should already exist.
-    user = get_user_by_clerk_id(db, clerk_id)
-    if not user:
-        # This behavior might need adjustment. Should an API call from a non-existent user create them?
-        # Or should creation only happen via webhook? For now, we raise an error.
-        raise HTTPException(status_code=404, detail="User not found")
-        
-    return user
+    # If no token in header, check for Clerk session cookie
+    if not token and request:
+        cookies = request.cookies
+        session_cookie = cookies.get("__session")
+        if session_cookie:
+            token = session_cookie
+            print("Token found in Clerk session cookie")
+    
+    if not token:
+        print("No authentication token found")
+        return None
+    
+    try:
+        # Decode and verify the JWT token
+        try:
+            decoded_token = jwt.decode(
+                token,
+                options={"verify_signature": False}  # In production, should verify with Clerk's public key
+            )
+            
+            # Print token details for debugging
+            print(f"Decoded token: {decoded_token}")
+            
+            # Extract the clerk_id from the token
+            clerk_id = decoded_token.get("sub")
+            print(f"Extracted clerk_id: {clerk_id}")
+            
+            if not clerk_id:
+                print("No clerk_id found in token")
+                return None
+            
+            # Find user in database
+            user = db.query(db_models.User).filter(db_models.User.clerk_id == clerk_id).first()
+            print(f"Found user in DB: {user is not None}")
+            
+            # If user doesn't exist yet, create one (auto-registration)
+            if not user:
+                print("Creating new user in database")
+                user = db_models.User(
+                    clerk_id=clerk_id,
+                    email=decoded_token.get("email"),
+                    first_name=decoded_token.get("given_name", ""),
+                    last_name=decoded_token.get("family_name", "")
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+                print(f"New user created with ID: {user.id}")
+            else:
+                print(f"Existing user found with ID: {user.id}")
+            
+            return user
+        except jwt.DecodeError as e:
+            print(f"JWT decode error: {str(e)}")
+            print(f"Token format issue, trying to handle as plain token: {token[:20]}...")
+            # Maybe it's not a JWT format, try using the token as clerk_id directly
+            user = db.query(db_models.User).filter(db_models.User.clerk_id == token).first()
+            if user:
+                print(f"Found user with token as clerk_id: {user.id}")
+                return user
+            return None
+    except Exception as e:
+        print(f"Authentication error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return None
 
 
 #

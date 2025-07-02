@@ -59,6 +59,25 @@ async def import_flashcards_endpoint(data: schemas.FlashcardsImport, db: Session
 #
 # User and Authentication Endpoints
 #
+@router.post("/users")
+@router.post("/users/")
+async def create_user_endpoint(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Check if user already exists
+    existing_user = service.get_user_by_clerk_id(db, user_data.clerk_id)
+    if existing_user:
+        # Update existing user with latest data
+        updated_user = service.update_user(db, user_data.clerk_id, {
+            "email": user_data.email,
+            "first_name": user_data.first_name,
+            "last_name": user_data.last_name,
+            "image_url": user_data.image_url,
+        })
+        return schemas.UserResponse.from_orm(updated_user)
+    
+    # Create new user
+    new_user = service.create_user(db, user_data)
+    return schemas.UserResponse.from_orm(new_user)
+
 @router.get("/user")
 @router.get("/user/")
 async def get_current_user_info(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
