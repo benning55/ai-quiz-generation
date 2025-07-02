@@ -350,6 +350,7 @@ To update the application:
 git pull
 docker-compose -f docker-compose.prod.yml down
 docker-compose -f docker-compose.prod.yml up -d --build
+ssh -i <path-to-private-key-file> azureuser@20.116.223.183
 ```
 
 ## License
