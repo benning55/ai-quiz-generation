@@ -72,7 +72,8 @@ async def create_user_endpoint(user_data: schemas.UserCreate, db: Session = Depe
             "last_name": user_data.last_name,
             "image_url": user_data.image_url,
         })
-        return schemas.UserResponse.from_orm(updated_user)
+        active_payment = service.get_user_active_payment(db, updated_user.id)
+        return schemas.UserResponse.from_orm(updated_user, active_payment)
     
     # Create new user
     new_user = service.create_user(db, user_data)

@@ -62,14 +62,15 @@ class UserResponse(UserBase):
     last_sign_in: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    start_member_date_time: Optional[datetime] = None
-    end_member_date_time: Optional[datetime] = None
+    member_tier: str = ""
+    has_active_payment: bool = False
+    expires_at: Optional[datetime] = None
     
     class Config:
         orm_mode = True
         
     @classmethod
-    def from_orm(cls, obj):
+    def from_orm(cls, obj, payment_obj=None):
         dict_obj = {col.name: getattr(obj, col.name) for col in obj.__table__.columns}
         
         if dict_obj.get('created_at'):
@@ -78,10 +79,15 @@ class UserResponse(UserBase):
             dict_obj['updated_at'] = dict_obj['updated_at'].isoformat()
         if dict_obj.get('last_sign_in'):
             dict_obj['last_sign_in'] = dict_obj['last_sign_in'].isoformat()
-        if dict_obj.get('start_member_date_time'):
-            dict_obj['start_member_date_time'] = dict_obj['start_member_date_time'].isoformat()
-        if dict_obj.get('end_member_date_time'):
-            dict_obj['end_member_date_time'] = dict_obj['end_member_date_time'].isoformat()
+
+        print("0000000000000")
+        if payment_obj:
+            print(payment_obj.tier)
+            print(payment_obj.amount)
+            print(payment_obj.status)
+            dict_obj['member_tier'] = payment_obj.tier
+            dict_obj['has_active_payment'] = True
+            dict_obj['expires_at'] = payment_obj.expires_at.isoformat()
             
         return cls(**dict_obj)
 

@@ -103,6 +103,7 @@ class Payment(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     stripe_payment_intent_id = Column(String)
     amount = Column(Integer)  # in cents
+    tier = Column(String)
     status = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime)

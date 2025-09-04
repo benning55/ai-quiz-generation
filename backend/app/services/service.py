@@ -320,10 +320,11 @@ def get_user_active_payment(db: Session, user_id: int) -> Optional[db_models.Pay
         db_models.Payment.expires_at > datetime.utcnow()
     ).first()
 
-def create_payment(db: Session, user_id: int, stripe_id: str, amount: int, status: str, expires_at: datetime):
+def create_payment(db: Session, user_id: int, stripe_id: str, amount: int, tier: str, status: str, expires_at: datetime):
     payment = db_models.Payment(
         user_id=user_id,
         stripe_payment_intent_id=stripe_id,
+        tier=tier,
         amount=amount,
         status=status,
         created_at=datetime.utcnow(),
@@ -471,6 +472,7 @@ async def handle_stripe_webhook(request: Request, db: Session):
                 user_id=int(user_id),
                 stripe_id=session.get('payment_intent'),
                 amount=session.get('amount_total'),
+                tier=tier,
                 status='succeeded',
                 expires_at=expires_at
             )
