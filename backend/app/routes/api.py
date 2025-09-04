@@ -114,7 +114,7 @@ async def create_checkout_session_endpoint(
     except:
         tier = "1month"
     
-    return service.create_stripe_checkout_session(current_user, db, tier)
+    return service.create_stripe_checkout_session(current_user, db, tier, request)
 
 #
 # Webhook Endpoints

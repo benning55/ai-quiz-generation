@@ -75,10 +75,10 @@ export function PaymentButton() {
         throw new Error("Failed to create checkout session")
       }
 
-      const { sessionId } = await response.json()
+      const { sessionUrl } = await response.json()
 
       // Redirect to Stripe Checkout
-      window.location.href = sessionId
+      window.location.href = sessionUrl
     } catch (error) {
       console.error("Payment error:", error)
       alert("Payment failed. Please try again.")

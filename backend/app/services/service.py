@@ -18,6 +18,7 @@ from ..db.database import get_db
 from .. import db
 from ..db import models as db_models
 from ..models import schemas
+from ..utils.config import FRONTEND_URL
 from ..utils import config, file_utils
 
 # Initialize clients
@@ -331,10 +332,13 @@ def create_payment(db: Session, user_id: int, stripe_id: str, amount: int, statu
     db.add(payment)
     db.commit()
 
-def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str = "1month"):
+def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str = "1month", request=None):
     # Check if user already has an active subscription
     if get_user_active_payment(db, user.id):
         raise HTTPException(status_code=400, detail="User already has an active subscription.")
+
+
+    print("*****")
 
     # Define pricing tiers
     pricing_tiers = {
@@ -357,6 +361,21 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
     
     tier_config = pricing_tiers[tier]
 
+    print(tier_config)
+
+    # Build dynamic URLs based on request or environment
+    if request:
+        # Use the request's host information
+        scheme = request.url.scheme
+        host = request.headers.get('host', 'localhost')
+        base_url = f"{scheme}://{host}"
+    else:
+        # Fallback to environment variable
+        base_url = FRONTEND_URL
+
+    success_url = f"{base_url}/thank-you?payment_success=true"
+    cancel_url = f"{base_url}/thank-you?payment_canceled=true"
+
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -369,8 +388,8 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='http://localhost:3000/dashboard?payment_success=true',
-            cancel_url='http://localhost:3000/dashboard?payment_canceled=true',
+            success_url=success_url,
+            cancel_url=cancel_url,
             customer_email=user.email,
             metadata={
                 'user_id': user.id,
@@ -378,7 +397,9 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
                 'duration_days': str(tier_config['duration_days'])
             }
         )
-        return {"sessionId": checkout_session.id}
+        print("====")
+        print(checkout_session)
+        return {"sessionUrl": checkout_session.url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
