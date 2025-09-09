@@ -64,18 +64,21 @@ export default function RootLayout({
             <script
               dangerouslySetInnerHTML={{
                 __html: `
-                  if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', function() {
-                      navigator.serviceWorker.register('/sw.js')
-                        .then(function(registration) {
-                          console.log('SW registered: ', registration);
-                        })
-                        .catch(function(registrationError) {
-                          console.log('SW registration failed: ', registrationError);
-                        });
-                    });
-                  }
-                `,
+                    if ('serviceWorker' in navigator) {
+                      window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('/sw.js');
+                      });
+                    }
+                    // auto-reload once on chunk load errors
+                    window.addEventListener('error', function (e) {
+                      var src = e?.target?.src || '';
+                      if (src.includes('/_next/') && src.includes('chunk') &&
+                          !sessionStorage.getItem('chunk-reload')) {
+                        sessionStorage.setItem('chunk-reload', '1');
+                        location.reload();
+                      }
+                    }, true);
+                  `,
               }}
             />
           </AuthProvider>
