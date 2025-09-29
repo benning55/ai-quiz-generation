@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { Progress } from "@/components/ui/progress"
 import confetti from 'canvas-confetti'
 import { PaymentButton } from '@/components/PaymentButton'
+import { UserStatusDebug } from '@/components/UserStatusDebug'
 import { API_ENDPOINTS } from '@/config/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { canStartFreeTest, incrementFreeTestsUsed, remainingFreeTests, FREE_TEST_LIMIT } from '@/lib/freeTestGate'
@@ -901,6 +902,7 @@ export default function QuizPage() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 mt-16">
+        <UserStatusDebug />
         <AnimatePresence mode="wait">
           {quiz.length > 0 && !quizCompleted && currentQuestionIndex < quiz.length ? (
             renderQuizQuestion()
