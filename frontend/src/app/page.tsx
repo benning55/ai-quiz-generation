@@ -7,9 +7,15 @@ import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import {useEffect} from "react"
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuth as useClerkAuth, useUser } from "@clerk/nextjs"
+import { API_ENDPOINTS } from "@/config/api";
 
 export default function Home() {
   const router = useRouter();
+  const { isSignedIn, getToken } = useClerkAuth()
+  const { userData, setUserData, isAdmin, isLoading } = useAuth()
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -43,6 +49,38 @@ export default function Home() {
   const handleStartNewQuiz = () => {
     router.push('/quiz');
   };
+  
+
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        // Get auth token
+        const token = await getToken()
+        const response = await fetch(API_ENDPOINTS.USER, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          console.error(
+            "Failed to sync user with backend:",
+            await response.json()
+          )
+        }
+
+        console.log("======")
+        console.log(response)
+      } catch (error) {
+        console.error("Error syncing user with backend:", error)
+      }
+    }
+    if (isSignedIn) {
+      getUserData()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">

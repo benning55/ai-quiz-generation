@@ -82,13 +82,10 @@ async def create_user_endpoint(user_data: schemas.UserCreate, db: Session = Depe
 @router.get("/user")
 @router.get("/user/")
 async def get_current_user_info(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
+    existing_user = service.get_user_by_clerk_id(db, current_user.clerk_id)
+    print(existing_user.email)
     active_payment = service.get_user_active_payment(db, current_user.id)
-    user_status = schemas.UserStatus(has_active_payment=bool(active_payment))
-    
-    return schemas.UserInfoResponse(
-        user_data=schemas.UserResponse.from_orm(current_user),
-        user_status=user_status
-    )
+    return schemas.UserResponse.from_orm(existing_user, active_payment)
 
 #
 # Quiz Generation Endpoint

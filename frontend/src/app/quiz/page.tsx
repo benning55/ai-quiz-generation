@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { useAuth as useClerkAuth, SignedIn, SignedOut } from "@clerk/nextjs"
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Header } from '@/sections/Header'
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, XCircle, ChevronsRight, RefreshCcw, Trophy, Timer, Sparkles, Shield } from "lucide-react"
@@ -14,6 +15,7 @@ import confetti from 'canvas-confetti'
 import { PaymentButton } from '@/components/PaymentButton'
 import { API_ENDPOINTS } from '@/config/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { canStartFreeTest, incrementFreeTestsUsed, remainingFreeTests, FREE_TEST_LIMIT } from '@/lib/freeTestGate'
 
 type QuizQuestion = {
   question: string;
@@ -28,6 +30,7 @@ type QuizData = {
 }
 
 export default function QuizPage() {
+  const router = useRouter()
   const { userData, setUserData, isLoading: authLoading } = useAuth();
   const { userId, getToken } = useClerkAuth();
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
@@ -54,6 +57,22 @@ export default function QuizPage() {
       origin: { y: 0.6 }
     });
   }, []);
+
+  const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid') => {
+    setIsLoading(true);
+    if (mode !== 'paid') {
+      if (!canStartFreeTest()) {
+        setIsLoading(false);
+        alert(`Free test limit reached (${FREE_TEST_LIMIT}). Please choose a plan to continue.`);
+        router.push('/payment-plan');
+        return;
+      }
+      incrementFreeTestsUsed(); // count on start to prevent abuse
+    }
+    await fetchQuiz();
+    setHasStarted(true);
+    setIsLoading(false);
+  };
 
   const fetchQuiz = useCallback(async () => {
     setIsLoading(true);
@@ -356,20 +375,39 @@ export default function QuizPage() {
             </Button>
           </motion.div>
           
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full sm:w-auto"
-          >
-            <Button 
-              onClick={fetchQuiz}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full"
-              size="lg"
+          {!userData?.has_active_payment && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full sm:w-auto"
             >
-              <RefreshCcw className="w-5 h-5" />
-              Start New Quiz
-            </Button>
-          </motion.div>
+              <Link href="/payment-plan" className="w-full sm:w-auto">
+                <Button className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full" size="lg">
+                  Go to purchase options
+                </Button>
+              </Link>
+            </motion.div>
+          )}
+          {(userData?.has_active_payment || canStartFreeTest()) && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                onClick={() => startQuizWithGate(userData?.has_active_payment ? 'paid' : (userId ? 'free' : 'guest'))}
+                className={`${userData?.has_active_payment ? 'bg-red-600 hover:bg-red-700 text-white' : ''} px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full`}
+                size="lg"
+                variant={userData?.has_active_payment ? 'default' : 'outline'}
+              >
+                <RefreshCcw className="w-5 h-5" />
+                {userData?.has_active_payment ? 'Start New Test' : `Start with a free test (${remainingFreeTests()} left)`}
+              </Button>
+            </motion.div>
+          )}
+          {(!userData?.has_active_payment && !canStartFreeTest()) && (
+            <p className="text-sm text-gray-600 text-center">You have used your 5 free tests.</p>
+          )}
           
           <SignedOut>
             <motion.div
@@ -755,11 +793,7 @@ export default function QuizPage() {
                   </p>
                   <div className='space-y-4'>
                     <Button
-                      onClick={async () => {
-                        setIsLoading(true)
-                        await fetchQuiz()
-                        setHasStarted(true)
-                      }}
+                      onClick={() => startQuizWithGate('guest')}
                       size='lg'
                       className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
                       disabled={isLoading}
@@ -770,7 +804,7 @@ export default function QuizPage() {
                           <span>Generating Quiz...</span>
                         </div>
                       ) : (
-                        "Start Free Test (3 Questions)"
+                        `Start with a free test (${remainingFreeTests()} left)`
                       )}
                     </Button>
                     <Link href='/sign-up' className='block'>
@@ -803,18 +837,10 @@ export default function QuizPage() {
                     <Sparkles className='w-6 h-6' />
                     <span className='font-semibold'>Upgrade Available</span>
                   </div>
-                  <p className='text-gray-600'>
-                    Get unlimited access to all practice questions and features
-                    for just $25 CAD!
-                  </p>
                   <div className='space-y-4'>
                     <PaymentButton />
                     <Button
-                      onClick={async () => {
-                        setIsLoading(true)
-                        await fetchQuiz()
-                        setHasStarted(true)
-                      }}
+                      onClick={() => startQuizWithGate('free')}
                       size='lg'
                       variant='outline'
                       className='w-full border-2 border-red-600 text-red-600 hover:bg-red-50'
@@ -826,7 +852,7 @@ export default function QuizPage() {
                           <span>Generating Quiz...</span>
                         </div>
                       ) : (
-                        "Start Test (5 Questions)"
+                        `Start with a free test (${remainingFreeTests()} left)`
                       )}
                     </Button>
                   </div>
@@ -842,11 +868,7 @@ export default function QuizPage() {
                     test now!
                   </p>
                   <Button
-                    onClick={async () => {
-                      setIsLoading(true)
-                      await fetchQuiz()
-                      setHasStarted(true)
-                    }}
+                    onClick={() => startQuizWithGate('paid')}
                     size='lg'
                     className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
                     disabled={isLoading}
@@ -863,6 +885,7 @@ export default function QuizPage() {
                 </div>
               )}
             </motion.div>
+
 
           </div>
         </main>
