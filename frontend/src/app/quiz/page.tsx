@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/sections/Header'
 import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle, XCircle, ChevronsRight, RefreshCcw, Trophy, Timer, Sparkles, Shield } from "lucide-react"
+import { CheckCircle, XCircle, ChevronsRight, RefreshCcw, Trophy, Timer, Sparkles, Shield, Crown } from "lucide-react"
 import Image from 'next/image'
 import { Progress } from "@/components/ui/progress"
 import confetti from 'canvas-confetti'
@@ -51,6 +51,8 @@ export default function QuizPage() {
   const [quizAttemptId, setQuizAttemptId] = useState<number | null>(null);
   const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
   const [completionCalled, setCompletionCalled] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
+  const [chapters, setChapters] = useState<any[]>([]);
   
   // Confetti effect for correct answers
   const triggerConfetti = useCallback(() => {
@@ -62,7 +64,7 @@ export default function QuizPage() {
   }, []);
 
   // Progress tracking functions
-  const startQuizTracking = async () => {
+  const startQuizTracking = async (chapterId?: number | null) => {
     if (!userId) return null;
     
     try {
@@ -70,7 +72,8 @@ export default function QuizPage() {
       if (!token) return null;
       
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
-      const url = `${API_URL}/api/quiz/start?quiz_type=practice`;
+      const quizType = chapterId ? 'chapter_specific' : 'practice';
+      const url = `${API_URL}/api/quiz/start?quiz_type=${quizType}${chapterId ? `&chapter_id=${chapterId}` : ''}`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -129,7 +132,7 @@ export default function QuizPage() {
     }
   };
 
-  const completeQuizTracking = async () => {
+  const completeQuizTracking = useCallback(async () => {
     if (!quizAttemptId || !userId || completionCalled) return;
     
     setCompletionCalled(true);
@@ -160,9 +163,29 @@ export default function QuizPage() {
     } catch (error) {
       console.error('Failed to complete quiz tracking:', error);
     }
-  };
+  }, [quizAttemptId, userId, completionCalled, getToken, quizStartTime, seconds]);
 
-  const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid') => {
+  // Load chapters for premium users
+  useEffect(() => {
+    const loadChapters = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+        const response = await fetch(`${API_URL}/api/chapters/`);
+        if (response.ok) {
+          const data = await response.json();
+          setChapters(data);
+        }
+      } catch (error) {
+        console.error('Failed to load chapters:', error);
+      }
+    };
+
+    if (userData?.has_active_payment) {
+      loadChapters();
+    }
+  }, [userData?.has_active_payment]);
+
+  const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid', chapterId?: number | null) => {
     setIsLoading(true);
     if (mode !== 'paid') {
       if (!canStartFreeTest()) {
@@ -174,19 +197,22 @@ export default function QuizPage() {
       incrementFreeTestsUsed(); // count on start to prevent abuse
     }
     
+    // Store selected chapter for quiz generation
+    setSelectedChapter(chapterId || null);
+    
     // Start progress tracking for signed-in users
     if (userId) {
-      const attemptId = await startQuizTracking();
+      const attemptId = await startQuizTracking(chapterId);
       setQuizAttemptId(attemptId);
       setQuizStartTime(new Date());
     }
     
-    await fetchQuiz();
+    await fetchQuiz(chapterId);
     setHasStarted(true);
     setIsLoading(false);
   };
 
-  const fetchQuiz = useCallback(async () => {
+  const fetchQuiz = useCallback(async (chapterId?: number | null) => {
     setIsLoading(true);
     setCurrentQuestionIndex(0);
     setSelectedOption(null);
@@ -218,7 +244,11 @@ export default function QuizPage() {
         ? 5
         : 3
       
-      const response = await fetch(API_ENDPOINTS.GENERATE_QUIZ, {
+      const url = chapterId 
+        ? `${API_ENDPOINTS.GENERATE_QUIZ}?chapter_id=${chapterId}`
+        : API_ENDPOINTS.GENERATE_QUIZ;
+        
+      const response = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -270,7 +300,7 @@ export default function QuizPage() {
         completeQuizTracking();
       }, 100);
     }
-  }, [quizCompleted, userId, quizAttemptId]);
+  }, [quizCompleted, userId, quizAttemptId, completeQuizTracking]);
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quiz.length - 1) {
@@ -1011,29 +1041,64 @@ export default function QuizPage() {
                 </div>
               ) : (
                 <div className='bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6'>
-                  <div className='flex items-center justify-center gap-3 text-green-600'>
-                    <CheckCircle className='w-6 h-6' />
-                    <span className='font-semibold'>Full Access</span>
+                  <div className='flex items-center justify-center gap-3 text-green-600 mb-4'>
+                    <Crown className='w-6 h-6' />
+                    <span className='font-semibold text-lg'>Premium Access</span>
                   </div>
-                  <p className='text-gray-600'>
-                    You have full access to all practice questions. Start your
-                    test now!
+                  <p className='text-gray-600 text-center mb-6'>
+                    Choose your quiz type - practice by chapter or take the full mixed test!
                   </p>
-                  <Button
-                    onClick={() => startQuizWithGate('paid')}
-                    size='lg'
-                    className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className='flex items-center gap-2'>
-                        <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
-                        <span>Generating Quiz...</span>
-                      </div>
-                    ) : (
-                      "Start Full Test (20 Questions)"
-                    )}
-                  </Button>
+                  
+                  {/* Mixed Test Option */}
+                  <div className='border-2 border-red-200 rounded-xl p-4 bg-red-50 mb-6'>
+                    <div className='flex items-center gap-3 mb-3'>
+                      <Sparkles className='w-5 h-5 text-red-600' />
+                      <h3 className='font-semibold text-red-800'>Full Mixed Test</h3>
+                    </div>
+                    <p className='text-red-700 text-sm mb-4'>Complete 20-question test with questions from all chapters - just like the real exam!</p>
+                    <Button
+                      onClick={() => startQuizWithGate('paid', null)}
+                      size='lg'
+                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <div className='flex items-center gap-2'>
+                          <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                          <span>Generating Quiz...</span>
+                        </div>
+                      ) : (
+                        "Start Full Mixed Test (20 Questions)"
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Chapter Selection */}
+                  <div className='space-y-4'>
+                    <h3 className='font-semibold text-gray-800 text-center'>Or Practice by Chapter</h3>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto'>
+                      {chapters.map((chapter, index) => (
+                        <motion.button
+                          key={chapter.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => startQuizWithGate('paid', chapter.id)}
+                          disabled={isLoading}
+                          className='p-4 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50'
+                        >
+                          <div className='flex items-start gap-3'>
+                            <div className='w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
+                              <span className='text-red-600 font-semibold text-sm'>{chapter.order || index + 1}</span>
+                            </div>
+                            <div className='flex-1'>
+                              <h4 className='font-medium text-gray-800 group-hover:text-red-700 text-sm'>{chapter.title}</h4>
+                              <p className='text-xs text-gray-500 mt-1 line-clamp-2'>{chapter.description}</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>

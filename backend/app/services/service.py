@@ -241,33 +241,39 @@ async def generate_quiz(content: str, question_count: int, question_types: List[
     from .ai_service import generate_quiz as ai_generate_quiz
     return await ai_generate_quiz(content, question_count, question_types, ai_provider)
 
-async def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest) -> dict:
+async def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest, chapter_id: int = None) -> dict:
     from .chapter_service import get_chapter_title_by_category, get_chapter_id_by_title
     
     query = db.query(db_models.Flashcard)
     
-    # Support both old category system and new chapter system
-    if request.category:
+    # Priority 1: Use chapter_id if provided (from chapter selection)
+    if chapter_id:
+        query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
+    # Priority 2: Support both old category system and new chapter system
+    elif request.category:
         # Try to map old category to new chapter title
         chapter_title = get_chapter_title_by_category(request.category)
         if chapter_title:
-            chapter_id = get_chapter_id_by_title(chapter_title)
-            if chapter_id:
-                query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
+            mapped_chapter_id = get_chapter_id_by_title(chapter_title)
+            if mapped_chapter_id:
+                query = query.filter(db_models.Flashcard.chapter_id == mapped_chapter_id)
             else:
                 # Fallback to old category system
                 query = query.filter(db_models.Flashcard.category == request.category)
         else:
             # Use category as-is (could be a chapter title)
-            chapter_id = get_chapter_id_by_title(request.category)
-            if chapter_id:
-                query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
+            mapped_chapter_id = get_chapter_id_by_title(request.category)
+            if mapped_chapter_id:
+                query = query.filter(db_models.Flashcard.chapter_id == mapped_chapter_id)
             else:
                 query = query.filter(db_models.Flashcard.category == request.category)
     
-    flashcards = query.limit(request.count).all()
+    flashcards = query.limit(request.count * 3).all()  # Get more flashcards to have variety for AI
     if not flashcards:
-        raise HTTPException(status_code=404, detail="No flashcards found for the given criteria.")
+        if chapter_id:
+            raise HTTPException(status_code=404, detail=f"No flashcards found for chapter ID {chapter_id}. This chapter may not have content yet.")
+        else:
+            raise HTTPException(status_code=404, detail="No flashcards found for the given criteria.")
         
     # Combine flashcards into a text block for the AI
     content = "\n\n".join([f"Q: {f.question}\nA: {f.answer}" for f in flashcards])

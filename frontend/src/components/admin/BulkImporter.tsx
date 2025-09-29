@@ -397,13 +397,13 @@ export default function BulkImporter({ chapters, onImportComplete }: BulkImporte
             <h4 className="font-medium text-blue-800 mb-2">File Format Guide</h4>
             <div className="text-sm text-blue-700 space-y-2">
               <div>
-                <strong>JSON Format:</strong> Use the template with "flashcards" array containing objects with question, answer, chapter_id, and tags fields.
+                <strong>JSON Format:</strong> Use the template with &quot;flashcards&quot; array containing objects with question, answer, chapter_id, and tags fields.
               </div>
               <div>
                 <strong>CSV Format:</strong> Required columns: question, answer. Optional: chapter, tags (semicolon-separated), category.
               </div>
               <div>
-                <strong>Chapter Assignment:</strong> Use chapter titles (e.g., "Rights and Responsibilities") or chapter IDs.
+                <strong>Chapter Assignment:</strong> Use chapter titles (e.g., &quot;Rights and Responsibilities&quot;) or chapter IDs.
               </div>
             </div>
           </div>

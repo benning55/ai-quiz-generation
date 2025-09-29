@@ -187,8 +187,12 @@ async def complete_quiz_tracking(
 #
 @router.post("/generate-quiz-from-flashcards")
 @router.post("/generate-quiz-from-flashcards/")
-async def generate_quiz_from_flashcards_endpoint(request: schemas.QuizRequest, db: Session = Depends(get_db)):
-    quiz_data = await service.generate_quiz_from_flashcards_service(db, request)
+async def generate_quiz_from_flashcards_endpoint(
+    request: schemas.QuizRequest, 
+    chapter_id: int = None,
+    db: Session = Depends(get_db)
+):
+    quiz_data = await service.generate_quiz_from_flashcards_service(db, request, chapter_id)
     return {"quiz": quiz_data}
 
 #

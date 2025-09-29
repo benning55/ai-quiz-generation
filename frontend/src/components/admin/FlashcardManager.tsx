@@ -528,7 +528,7 @@ export default function FlashcardManager() {
                 placeholder="Enter tags separated by commas..."
               />
               <p className="text-xs text-gray-500 mt-1">
-                Separate multiple tags with commas (e.g., "history, government, important")
+                Separate multiple tags with commas (e.g., &quot;history, government, important&quot;)
               </p>
             </div>
 
