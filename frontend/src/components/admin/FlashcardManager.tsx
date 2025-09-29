@@ -22,7 +22,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
-import { API_ENDPOINTS } from '@/config/api'
+import { API_ENDPOINTS, API_URL } from '@/config/api'
 
 type Flashcard = {
   id: number
@@ -79,7 +79,7 @@ export default function FlashcardManager() {
       // Load flashcards and chapters in parallel
       const [flashcardsResponse, chaptersResponse] = await Promise.all([
         fetch(API_ENDPOINTS.FLASHCARDS + '?limit=1000'),
-        fetch('/api/chapters/')
+        fetch(API_ENDPOINTS.CHAPTERS)
       ])
 
       if (flashcardsResponse.ok && chaptersResponse.ok) {
@@ -88,8 +88,16 @@ export default function FlashcardManager() {
           chaptersResponse.json()
         ])
         
+        console.log('Loaded flashcards:', flashcardsData)
+        console.log('Loaded chapters:', chaptersData)
+        
         setFlashcards(flashcardsData)
         setChapters(chaptersData.sort((a: Chapter, b: Chapter) => a.order - b.order))
+      } else {
+        console.error('Failed to load data:', {
+          flashcards: flashcardsResponse.status,
+          chapters: chaptersResponse.status
+        })
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -208,7 +216,7 @@ export default function FlashcardManager() {
 
   const assignToChapter = async (flashcardId: number, chapterTitle: string) => {
     try {
-      const response = await fetch(`/api/flashcards/${flashcardId}/assign-chapter?chapter_title=${encodeURIComponent(chapterTitle)}`, {
+      const response = await fetch(`${API_URL}/api/flashcards/${flashcardId}/assign-chapter?chapter_title=${encodeURIComponent(chapterTitle)}`, {
         method: 'POST'
       })
 

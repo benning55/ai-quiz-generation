@@ -37,10 +37,12 @@ export default function AdminPage() {
   useEffect(() => {
     const loadChapters = async () => {
       try {
-        const response = await fetch('/api/chapters/')
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost'}/api/chapters/`)
         if (response.ok) {
           const data = await response.json()
           setChapters(data)
+        } else {
+          console.error('Failed to load chapters:', response.status)
         }
       } catch (error) {
         console.error('Error loading chapters:', error)

@@ -96,7 +96,8 @@ export default function BulkImporter({ chapters, onImportComplete }: BulkImporte
 
       const flashcards = Array.isArray(data) ? data : data.flashcards
 
-      const response = await fetch('/api/import-flashcards-json/', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost'
+      const response = await fetch(`${API_URL}/api/import-flashcards-json/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ flashcards })
@@ -199,7 +200,8 @@ export default function BulkImporter({ chapters, onImportComplete }: BulkImporte
       }
 
       // Import flashcards
-      const response = await fetch('/api/import-flashcards-json/', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost'
+      const response = await fetch(`${API_URL}/api/import-flashcards-json/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ flashcards })

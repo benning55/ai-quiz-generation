@@ -3,6 +3,8 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
 export const API_ENDPOINTS = {
   GENERATE_QUIZ: `${API_URL}/api/generate-quiz-from-flashcards/`,
   IMPORT_FLASHCARDS: `${API_URL}/api/import-flashcards-json/`,
+  FLASHCARDS: `${API_URL}/api/flashcards/`,
+  CHAPTERS: `${API_URL}/api/chapters/`,
   USERS: `${API_URL}/api/users/`,
   USER: `${API_URL}/api/user/`,
   CHECKOUT: `${API_URL}/api/create-checkout-session/`,
