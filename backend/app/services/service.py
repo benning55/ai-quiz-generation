@@ -23,10 +23,8 @@ from ..utils import config, file_utils
 
 # Initialize clients
 stripe.api_key = config.STRIPE_SECRET_KEY
-# Initialize Groq client only if API key is available
-groq_client = None
-if config.GROQ_API_KEY and config.GROQ_API_KEY != "your_groq_api_key_here":
-    groq_client = Groq(api_key=config.GROQ_API_KEY)
+# Initialize AI service
+from .ai_service import ai_generator
 
 security = HTTPBearer(auto_error=False)
 
@@ -219,82 +217,14 @@ async def extract_text_from_file(db: Session, file: UploadFile):
 # AI Quiz Generation Services
 #
 
-def _generate_questions_deepseek(content: str, question_count: int, types_str: str) -> dict:
-    headers = {"Authorization": f"Bearer {config.DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": _get_quiz_prompt(content, question_count, types_str)}],
-        "temperature": 0.6, "max_tokens": 4096, "top_p": 0.95
-    }
-    try:
-        response = requests.post(config.DEEPSEEK_API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        response_text = response.json()["choices"][0]["message"]["content"].strip()
-        return _parse_ai_response(response_text)
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"API request failed: {e}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+# Legacy AI functions removed - now using enhanced ai_service module
 
-def _generate_questions_groq(content: str, question_count: int, types_str: str) -> dict:
-    # Check if API key is configured and client is initialized
-    if not groq_client:
-        raise HTTPException(
-            status_code=500, 
-            detail="Groq API key is not configured. Please set the GROQ_API_KEY environment variable."
-        )
-    
-    try:
-        completion = groq_client.chat.completions.create(
-            model="deepseek-r1-distill-llama-70b",
-            messages=[{"role": "user", "content": _get_quiz_prompt(content, question_count, types_str)}],
-            temperature=0.6, max_completion_tokens=4096, top_p=0.95, stream=False, stop=None
-        )
-        response_text = completion.choices[0].message.content.strip()
-        return _parse_ai_response(response_text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Groq API error: {str(e)}")
+async def generate_quiz(content: str, question_count: int, question_types: List[str], ai_provider: str = "groq") -> dict:
+    """Enhanced quiz generation with better error handling and consistency"""
+    from .ai_service import generate_quiz as ai_generate_quiz
+    return await ai_generate_quiz(content, question_count, question_types, ai_provider)
 
-def _get_quiz_prompt(content: str, question_count: int, types_str: str) -> str:
-    # Reusable prompt function
-    return f"""
-You are a Quiz Master...
-1. Summarize the key points of the content.
-2. Generate a quiz with exactly {question_count} questions of types: [{types_str}].
-3. Format the output in **pure JSON**.
-### Content:
-{content}
-### Expected JSON Format:
-{{
-  "summary": "Brief summary.",
-  "quiz": [ {{ "question": "...", "type": "...", "options": [], "answer": "..." }} ]
-}}
-"""
-
-def _parse_ai_response(response_text: str) -> dict:
-    match = re.search(r"\{.*\}", response_text, re.DOTALL)
-    if match:
-        json_text = match.group(0)
-        try:
-            result = json.loads(json_text)
-            if "quiz" not in result or not isinstance(result["quiz"], list):
-                raise ValueError("Invalid quiz format in AI response")
-            return result
-        except json.JSONDecodeError:
-            raise ValueError("Failed to parse AI-generated JSON.")
-    raise ValueError("No valid JSON found in AI response.")
-
-def generate_quiz(content: str, question_count: int, question_types: List[str], ai_provider: str = "groq") -> dict:
-    types_str = ", ".join(f'"{t}"' for t in question_types)
-    try:
-        if ai_provider == "deepseek":
-            return _generate_questions_deepseek(content, question_count, types_str)
-        else: # Default to groq
-            return _generate_questions_groq(content, question_count, types_str)
-    except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest) -> dict:
+async def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest) -> dict:
     query = db.query(db_models.Flashcard)
     if request.category:
         query = query.filter(db_models.Flashcard.category == request.category)
@@ -306,7 +236,7 @@ def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequ
     # Combine flashcards into a text block for the AI
     content = "\n\n".join([f"Q: {f.question}\nA: {f.answer}" for f in flashcards])
     
-    return generate_quiz(content, len(flashcards), request.question_types)
+    return await generate_quiz(content, len(flashcards), request.question_types)
 
 
 #

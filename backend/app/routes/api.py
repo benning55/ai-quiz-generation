@@ -24,7 +24,7 @@ async def health_check():
 async def extract_text_endpoint(file: UploadFile = File(...), db: Session = Depends(get_db)):
     # This endpoint now handles file upload and calls the service for extraction and quiz generation.
     extraction_result = await service.extract_text_from_file(db, file)
-    quiz_result = service.generate_quiz(extraction_result["extracted_text"], 10, ["multiple_choice", "true_false"])
+    quiz_result = await service.generate_quiz(extraction_result["extracted_text"], 10, ["multiple_choice", "true_false"])
     
     return {
         "filename": extraction_result["filename"],
@@ -93,7 +93,7 @@ async def get_current_user_info(current_user: db_models.User = Depends(service.g
 @router.post("/generate-quiz-from-flashcards")
 @router.post("/generate-quiz-from-flashcards/")
 async def generate_quiz_from_flashcards_endpoint(request: schemas.QuizRequest, db: Session = Depends(get_db)):
-    quiz_data = service.generate_quiz_from_flashcards_service(db, request)
+    quiz_data = await service.generate_quiz_from_flashcards_service(db, request)
     return {"quiz": quiz_data}
 
 #
