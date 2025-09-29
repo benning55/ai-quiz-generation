@@ -79,6 +79,11 @@ export const Header = () => {
     { href: "/about", label: "About" }
   ]
 
+  // Additional nav links for signed-in users
+  const userNavLinks = [
+    { href: "/account", label: "Account" }
+  ]
+
   return (
     <>
       <motion.header
@@ -203,6 +208,42 @@ export const Header = () => {
                 ))}
 
                 <SignedIn>
+                  {/* Account link for all signed-in users */}
+                  {userNavLinks.map((link) => (
+                    <motion.div key={link.href} variants={navItemVariants}>
+                      <Link
+                        href={link.href}
+                        className={`px-4 py-2 rounded-full text-sm font-medium ${
+                          pathname === link.href
+                            ? scrolled || !isHomePage
+                              ? "text-red-600"
+                              : "text-yellow-300"
+                            : scrolled || !isHomePage
+                            ? "text-gray-700 hover:text-red-600"
+                            : "text-white/90 hover:text-white"
+                        }`}
+                      >
+                        {pathname === link.href && (
+                          <motion.span
+                            layoutId='navbar-indicator'
+                            className={`absolute inset-0 rounded-full -z-10 ${
+                              scrolled || !isHomePage
+                                ? "bg-red-50"
+                                : "bg-white/10"
+                            }`}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+
+                  {/* Admin link for admin users only */}
                   {isAdmin && (
                     <motion.div variants={navItemVariants}>
                       <Link
@@ -426,6 +467,30 @@ export const Header = () => {
                   ))}
 
                   <SignedIn>
+                    {/* Account link for all signed-in users */}
+                    {userNavLinks.map((link) => (
+                      <motion.div
+                        key={link.href}
+                        variants={{
+                          hidden: { opacity: 0, x: -20 },
+                          visible: { opacity: 1, x: 0 },
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Link
+                          href={link.href}
+                          className={`block p-3 text-lg font-medium rounded-lg ${
+                            pathname === link.href
+                              ? "bg-white/20 text-white"
+                              : "text-white/80 hover:bg-white/10"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+
+                    {/* Admin link for admin users only */}
                     {isAdmin && (
                       <motion.div
                         variants={{

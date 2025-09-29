@@ -102,6 +102,91 @@ async def get_current_user_info(current_user: db_models.User = Depends(service.g
     active_payment = service.get_user_active_payment(db, current_user.id)
     return schemas.UserResponse.from_orm(existing_user, active_payment)
 
+@router.get("/user/stats")
+async def get_user_stats(current_user: db_models.User = Depends(service.get_current_user), db: Session = Depends(get_db)):
+    """Get user quiz statistics from database"""
+    try:
+        from ..services.progress_service import get_user_stats
+        stats = get_user_stats(db, current_user.id)
+        return stats
+    except Exception as e:
+        # Fallback to mock data if progress tracking not yet implemented
+        return {
+            "total_quizzes": 0,
+            "average_score": 0,
+            "best_score": 0,
+            "total_questions": 0,
+            "correct_answers": 0,
+            "study_streak": 0,
+            "favorite_chapter": "Not available"
+        }
+
+# Progress Tracking Endpoints
+@router.post("/quiz/start")
+async def start_quiz_tracking(
+    quiz_type: str = "practice",
+    chapter_id: int = None,
+    current_user: db_models.User = Depends(service.get_current_user), 
+    db: Session = Depends(get_db)
+):
+    """Start a new quiz attempt for progress tracking"""
+    try:
+        print(f"Starting quiz tracking for user {current_user.id} with type {quiz_type}")
+        from ..services.progress_service import start_quiz
+        attempt_id = start_quiz(db, current_user.id, quiz_type, chapter_id)
+        print(f"Created quiz attempt with ID: {attempt_id}")
+        return {"quiz_attempt_id": attempt_id, "message": "Quiz started successfully"}
+    except Exception as e:
+        print(f"Failed to start quiz tracking: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"quiz_attempt_id": None, "message": f"Failed to start quiz tracking: {str(e)}"}
+
+@router.post("/quiz/{quiz_attempt_id}/answer")
+async def record_quiz_answer(
+    quiz_attempt_id: int,
+    answer_data: dict,  # Should contain: flashcard_id, question_text, question_type, correct_answer, user_answer, is_correct
+    current_user: db_models.User = Depends(service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Record a question answer during a quiz"""
+    try:
+        from ..services.progress_service import record_answer
+        record_answer(
+            db=db,
+            quiz_attempt_id=quiz_attempt_id,
+            flashcard_id=answer_data.get("flashcard_id"),
+            question_text=answer_data.get("question_text", ""),
+            question_type=answer_data.get("question_type", "multiple_choice"),
+            correct_answer=answer_data.get("correct_answer", ""),
+            user_answer=answer_data.get("user_answer", ""),
+            is_correct=answer_data.get("is_correct", False),
+            time_taken=answer_data.get("time_taken")
+        )
+        return {"message": "Answer recorded successfully"}
+    except Exception as e:
+        return {"message": f"Failed to record answer: {str(e)}"}
+
+@router.post("/quiz/{quiz_attempt_id}/complete")
+async def complete_quiz_tracking(
+    quiz_attempt_id: int,
+    completion_data: dict = {},  # Optional: total_time
+    current_user: db_models.User = Depends(service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Complete a quiz attempt and update user statistics"""
+    try:
+        from ..services.progress_service import finish_quiz
+        attempt = finish_quiz(db, quiz_attempt_id, completion_data.get("total_time"))
+        return {
+            "message": "Quiz completed successfully",
+            "score": attempt.score_percentage if attempt else 0,
+            "correct_answers": attempt.correct_answers if attempt else 0,
+            "total_questions": attempt.total_questions if attempt else 0
+        }
+    except Exception as e:
+        return {"message": f"Failed to complete quiz: {str(e)}"}
+
 #
 # Quiz Generation Endpoint
 #

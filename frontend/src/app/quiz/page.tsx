@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress"
 import confetti from 'canvas-confetti'
 import { PaymentButton } from '@/components/PaymentButton'
 import { UserStatusDebug } from '@/components/UserStatusDebug'
+import { QuizDebugInfo } from '@/components/QuizDebugInfo'
 import { API_ENDPOINTS } from '@/config/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { canStartFreeTest, incrementFreeTestsUsed, remainingFreeTests, FREE_TEST_LIMIT } from '@/lib/freeTestGate'
@@ -49,6 +50,9 @@ export default function QuizPage() {
   const [userAnswers, setUserAnswers] = useState<(string | boolean | null)[]>([]);
   const [answerResults, setAnswerResults] = useState<boolean[]>([]);
   const [showSummary, setShowSummary] = useState(false);
+  const [quizAttemptId, setQuizAttemptId] = useState<number | null>(null);
+  const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
+  const [completionCalled, setCompletionCalled] = useState(false);
   
   // Confetti effect for correct answers
   const triggerConfetti = useCallback(() => {
@@ -58,6 +62,154 @@ export default function QuizPage() {
       origin: { y: 0.6 }
     });
   }, []);
+
+  // Progress tracking functions
+  const startQuizTracking = async () => {
+    if (!userId) {
+      console.log('No userId - cannot start tracking');
+      return null;
+    }
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        console.log('No token available - cannot start tracking');
+        return null;
+      }
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+      const url = `${API_URL}/api/quiz/start?quiz_type=practice`;
+      console.log('Making quiz start request to:', url);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      
+      console.log('Quiz start response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Quiz start response data:', data);
+        console.log('Quiz tracking started:', data.quiz_attempt_id);
+        return data.quiz_attempt_id;
+      } else {
+        const errorText = await response.text();
+        console.error('Quiz start failed - server error:', response.status, errorText);
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to start quiz tracking:', error);
+      return null;
+    }
+  };
+
+  const recordQuestionAnswer = async (questionData: any) => {
+    console.log('recordQuestionAnswer called with:', { quizAttemptId, userId, questionData });
+    
+    if (!quizAttemptId || !userId) {
+      console.log('Skipping answer recording - missing data:', { quizAttemptId, userId });
+      return;
+    }
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        console.log('No token available for answer recording');
+        return;
+      }
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+      const url = `${API_URL}/api/quiz/${quizAttemptId}/answer`;
+      const requestData = {
+        flashcard_id: questionData.id || null, // Use null instead of 0
+        question_text: questionData.question,
+        question_type: questionData.type || 'multiple_choice',
+        correct_answer: String(questionData.correct_answer),
+        user_answer: String(questionData.user_answer),
+        is_correct: questionData.is_correct,
+        time_taken: questionData.time_taken
+      };
+      
+      console.log('Making answer recording request to:', url);
+      console.log('Request data:', requestData);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      console.log('Answer recording response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Answer recorded successfully:', result);
+        console.log('Answer recorded for question:', questionData.question.substring(0, 50) + '...');
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to record answer - server error:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Failed to record answer:', error);
+    }
+  };
+
+  const completeQuizTracking = async () => {
+    console.log('completeQuizTracking called with:', { quizAttemptId, userId });
+    
+    if (!quizAttemptId || !userId || completionCalled) {
+      console.log('Skipping completion - missing data or already called:', { quizAttemptId, userId, completionCalled });
+      return;
+    }
+    
+    setCompletionCalled(true);
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        console.log('No token available for completion');
+        return;
+      }
+      
+      const totalTime = quizStartTime ? Math.floor((Date.now() - quizStartTime.getTime()) / 1000) : seconds;
+      console.log('Completing quiz with time:', totalTime, 'seconds');
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+      const url = `${API_URL}/api/quiz/${quizAttemptId}/complete`;
+      console.log('Making completion request to:', url);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          total_time: totalTime
+        })
+      });
+      
+      console.log('Completion response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Quiz completed successfully:', result);
+        console.log(`Final score: ${result.score}% (${result.correct_answers}/${result.total_questions})`);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to complete quiz - server error:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Failed to complete quiz tracking:', error);
+    }
+  };
 
   const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid') => {
     setIsLoading(true);
@@ -70,6 +222,18 @@ export default function QuizPage() {
       }
       incrementFreeTestsUsed(); // count on start to prevent abuse
     }
+    
+    // Start progress tracking for signed-in users
+    if (userId) {
+      console.log('Starting quiz tracking for user:', userId);
+      const attemptId = await startQuizTracking();
+      console.log('Quiz attempt ID received:', attemptId);
+      setQuizAttemptId(attemptId);
+      setQuizStartTime(new Date());
+    } else {
+      console.log('No userId - skipping quiz tracking');
+    }
+    
     await fetchQuiz();
     setHasStarted(true);
     setIsLoading(false);
@@ -151,6 +315,17 @@ export default function QuizPage() {
     return () => clearInterval(interval);
   }, [isLoading, quiz.length, quizCompleted]);
 
+  // Track quiz completion as a backup
+  useEffect(() => {
+    if (quizCompleted && userId && quizAttemptId) {
+      console.log('Quiz completion detected via useEffect');
+      // Add a small delay to ensure all state is updated
+      setTimeout(() => {
+        completeQuizTracking();
+      }, 100);
+    }
+  }, [quizCompleted, userId, quizAttemptId]);
+
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quiz.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -159,6 +334,16 @@ export default function QuizPage() {
       setFeedback(null);
     } else {
       setQuizCompleted(true);
+      
+      // Complete quiz tracking for signed-in users
+      console.log('Quiz completion check:', { userId, quizAttemptId });
+      if (userId && quizAttemptId) {
+        console.log('Calling completeQuizTracking...');
+        completeQuizTracking();
+      } else {
+        console.log('Quiz tracking not completed - missing userId or quizAttemptId');
+      }
+      
       if (score > Math.floor(quiz.length * 0.7)) {
         setTimeout(() => {
           triggerConfetti();
@@ -202,6 +387,33 @@ export default function QuizPage() {
       setTimeout(() => {
         triggerConfetti();
       }, 300);
+    }
+    
+    // Track the answer for progress tracking
+    if (userId && quizAttemptId) {
+      recordQuestionAnswer({
+        question: currentQuestion.question,
+        type: currentQuestion.type || 'multiple_choice',
+        correct_answer: currentQuestion.answer,
+        user_answer: option,
+        is_correct: isCorrect,
+        time_taken: null // Could add per-question timing later
+      });
+    }
+
+    // Auto-complete quiz if this is the last question
+    if (currentQuestionIndex === quiz.length - 1) {
+      console.log('Last question answered - auto-completing quiz in 2 seconds...');
+      setTimeout(() => {
+        console.log('Auto-completing quiz now...');
+        setQuizCompleted(true);
+        
+        // Complete quiz tracking for signed-in users
+        if (userId && quizAttemptId) {
+          console.log('Auto-completion: Calling completeQuizTracking...');
+          completeQuizTracking();
+        }
+      }, 2000); // 2 second delay to let user see the answer
     }
   };
 
@@ -911,6 +1123,16 @@ export default function QuizPage() {
           ) : null}
         </AnimatePresence>
       </main>
+      
+      {/* Debug info - only shows in development */}
+      <QuizDebugInfo 
+        userId={userId}
+        quizAttemptId={quizAttemptId}
+        quizCompleted={quizCompleted}
+        currentQuestionIndex={currentQuestionIndex}
+        totalQuestions={quiz.length}
+        score={score}
+      />
     </div>
   );
 } 
