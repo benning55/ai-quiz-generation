@@ -131,15 +131,10 @@ async def start_quiz_tracking(
 ):
     """Start a new quiz attempt for progress tracking"""
     try:
-        print(f"Starting quiz tracking for user {current_user.id} with type {quiz_type}")
         from ..services.progress_service import start_quiz
         attempt_id = start_quiz(db, current_user.id, quiz_type, chapter_id)
-        print(f"Created quiz attempt with ID: {attempt_id}")
         return {"quiz_attempt_id": attempt_id, "message": "Quiz started successfully"}
     except Exception as e:
-        print(f"Failed to start quiz tracking: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return {"quiz_attempt_id": None, "message": f"Failed to start quiz tracking: {str(e)}"}
 
 @router.post("/quiz/{quiz_attempt_id}/answer")

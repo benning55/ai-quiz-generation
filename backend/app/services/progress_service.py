@@ -60,8 +60,6 @@ class ProgressService:
         Record a single question attempt within a quiz.
         Call this for each question the user answers.
         """
-        print(f"Recording answer for quiz {quiz_attempt_id}: {question_text[:50]}... | User: {user_answer} | Correct: {correct_answer} | Is Correct: {is_correct}")
-        
         question_attempt = db_models.QuestionAttempt(
             quiz_attempt_id=quiz_attempt_id,
             flashcard_id=flashcard_id,
@@ -75,7 +73,6 @@ class ProgressService:
         
         db.add(question_attempt)
         db.commit()
-        print(f"Successfully recorded question attempt with ID: {question_attempt.id}")
     
     @staticmethod
     def complete_quiz_attempt(
@@ -100,15 +97,9 @@ class ProgressService:
             db_models.QuestionAttempt.quiz_attempt_id == quiz_attempt_id
         ).all()
         
-        print(f"Found {len(question_attempts)} question attempts for quiz {quiz_attempt_id}")
-        for qa in question_attempts:
-            print(f"  Question: {qa.question_text[:50]}... | Correct: {qa.is_correct}")
-        
         total_questions = len(question_attempts)
         correct_answers = sum(1 for qa in question_attempts if qa.is_correct)
         score_percentage = (correct_answers / total_questions * 100) if total_questions > 0 else 0
-        
-        print(f"Quiz completion stats: {total_questions} questions, {correct_answers} correct, {score_percentage}% score")
         
         # Update quiz attempt
         attempt.total_questions = total_questions

@@ -11,7 +11,6 @@ import {useEffect} from "react"
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuth as useClerkAuth, useUser } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/config/api";
-import { UserStatusDebug } from "@/components/UserStatusDebug";
 
 export default function Home() {
   const router = useRouter();
@@ -88,9 +87,6 @@ export default function Home() {
       <Header />
       
       <main className="flex-grow">
-        <div className="container mx-auto px-4 pt-4">
-          <UserStatusDebug />
-        </div>
         {/* Hero Section */}
         <motion.section 
           initial={{ opacity: 0 }}

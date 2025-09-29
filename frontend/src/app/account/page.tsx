@@ -75,7 +75,6 @@ export default function AccountPage() {
         const token = await getToken()
         
         if (!token) {
-          console.log('No token available for stats')
           setIsLoading(false)
           return
         }
@@ -92,7 +91,6 @@ export default function AccountPage() {
 
         if (response.ok) {
           const stats = await response.json()
-          console.log('Fetched real user stats:', stats)
           
           setQuizStats({
             totalQuizzes: stats.total_quizzes || 0,
