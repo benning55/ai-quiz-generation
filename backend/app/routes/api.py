@@ -52,6 +52,20 @@ def get_flashcard_endpoint(flashcard_id: int, db: Session = Depends(get_db)):
 def create_flashcard_endpoint(flashcard: schemas.FlashcardCreate, db: Session = Depends(get_db)):
     return service.create_flashcard(db, flashcard)
 
+@router.put("/flashcards/{flashcard_id}")
+def update_flashcard_endpoint(flashcard_id: int, flashcard: schemas.FlashcardCreate, db: Session = Depends(get_db)):
+    updated_flashcard = service.update_flashcard(db, flashcard_id, flashcard)
+    if updated_flashcard is None:
+        raise HTTPException(status_code=404, detail="Flashcard not found")
+    return updated_flashcard
+
+@router.delete("/flashcards/{flashcard_id}")
+def delete_flashcard_endpoint(flashcard_id: int, db: Session = Depends(get_db)):
+    success = service.delete_flashcard(db, flashcard_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Flashcard not found")
+    return {"message": "Flashcard deleted successfully"}
+
 @router.post("/import-flashcards-json")
 @router.post("/import-flashcards-json/")
 async def import_flashcards_endpoint(data: schemas.FlashcardsImport, db: Session = Depends(get_db)):

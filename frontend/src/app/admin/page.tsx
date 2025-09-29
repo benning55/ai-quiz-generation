@@ -6,18 +6,22 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { Shield, Users, Settings, Activity, UserCheck, Crown, Upload, Check, AlertTriangle, Loader2 } from "lucide-react"
+import { Shield, Users, Settings, Activity, UserCheck, Crown, Upload, Check, AlertTriangle, Loader2, BookOpen, Database } from "lucide-react"
 import Link from 'next/link'
 import { API_ENDPOINTS } from '@/config/api'
+import FlashcardManager from '@/components/admin/FlashcardManager'
+import BulkImporter from '@/components/admin/BulkImporter'
 
 export default function AdminPage() {
   const { userData, setUserData, isAdmin, isLoading } = useAuth()
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'flashcards' | 'import'>('dashboard')
   const [stats, setStats] = useState({
     totalUsers: 1250,
     activeUsers: 890,
     totalQuizzes: 3450,
     averageScore: 78
   })
+  const [chapters, setChapters] = useState([])
   const [jsonContent, setJsonContent] = useState<string>('')
   const [isUploading, setIsUploading] = useState(false)
   const [result, setResult] = useState<{ 
@@ -28,6 +32,22 @@ export default function AdminPage() {
     total?: number;
     error?: string;
   } | null>(null)
+
+  // Load chapters
+  useEffect(() => {
+    const loadChapters = async () => {
+      try {
+        const response = await fetch('/api/chapters/')
+        if (response.ok) {
+          const data = await response.json()
+          setChapters(data)
+        }
+      } catch (error) {
+        console.error('Error loading chapters:', error)
+      }
+    }
+    loadChapters()
+  }, [])
 
   // Redirect non-admin users
   useEffect(() => {
@@ -126,7 +146,7 @@ export default function AdminPage() {
             className="max-w-6xl mx-auto"
           >
             {/* Header */}
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -145,8 +165,50 @@ export default function AdminPage() {
               </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Navigation Tabs */}
+            <div className="flex justify-center mb-8">
+              <div className="bg-white rounded-lg shadow-sm border p-1 flex">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-6 py-2 rounded-md transition-colors ${
+                    activeTab === 'dashboard' 
+                      ? 'bg-red-600 text-white' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Activity className="w-4 h-4 inline mr-2" />
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('flashcards')}
+                  className={`px-6 py-2 rounded-md transition-colors ${
+                    activeTab === 'flashcards' 
+                      ? 'bg-red-600 text-white' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4 inline mr-2" />
+                  Flashcards
+                </button>
+                <button
+                  onClick={() => setActiveTab('import')}
+                  className={`px-6 py-2 rounded-md transition-colors ${
+                    activeTab === 'import' 
+                      ? 'bg-red-600 text-white' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Database className="w-4 h-4 inline mr-2" />
+                  Bulk Import
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'dashboard' && (
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -436,6 +498,24 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
             </motion.div>
+              </>
+            )}
+
+            {/* Flashcard Management Tab */}
+            {activeTab === 'flashcards' && (
+              <FlashcardManager />
+            )}
+
+            {/* Bulk Import Tab */}
+            {activeTab === 'import' && (
+              <BulkImporter 
+                chapters={chapters} 
+                onImportComplete={() => {
+                  // Refresh data if needed
+                  console.log('Import completed')
+                }} 
+              />
+            )}
           </motion.div>
         </div>
       </div>

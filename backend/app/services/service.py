@@ -180,6 +180,23 @@ def create_flashcard(db: Session, flashcard: schemas.FlashcardCreate) -> db_mode
     db.refresh(db_flashcard)
     return db_flashcard
 
+def update_flashcard(db: Session, flashcard_id: int, flashcard: schemas.FlashcardCreate) -> Optional[db_models.Flashcard]:
+    db_flashcard = db.query(db_models.Flashcard).filter(db_models.Flashcard.id == flashcard_id).first()
+    if db_flashcard:
+        for key, value in flashcard.dict().items():
+            setattr(db_flashcard, key, value)
+        db.commit()
+        db.refresh(db_flashcard)
+    return db_flashcard
+
+def delete_flashcard(db: Session, flashcard_id: int) -> bool:
+    db_flashcard = db.query(db_models.Flashcard).filter(db_models.Flashcard.id == flashcard_id).first()
+    if db_flashcard:
+        db.delete(db_flashcard)
+        db.commit()
+        return True
+    return False
+
 def import_flashcards_from_json(db: Session, flashcards: List[schemas.FlashcardCreate]):
     db_flashcards = [db_models.Flashcard(**f.dict()) for f in flashcards]
     db.add_all(db_flashcards)
