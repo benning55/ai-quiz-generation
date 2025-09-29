@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from ..db.database import get_db
 from ..models import schemas
 from ..services import service
+from ..services import chapter_service
 from ..db import models as db_models
 
 router = APIRouter()
@@ -113,6 +114,55 @@ async def create_checkout_session_endpoint(
         tier = "1month"
     
     return service.create_stripe_checkout_session(current_user, db, tier, request)
+
+#
+# Chapter Endpoints
+#
+@router.get("/chapters/", response_model=List[schemas.Chapter])
+def get_chapters_endpoint(db: Session = Depends(get_db)):
+    """Get all Canadian citizenship test chapters"""
+    chapters = chapter_service.get_all_chapters(db)
+    return chapters
+
+@router.get("/chapters/{chapter_id}", response_model=schemas.Chapter)
+def get_chapter_endpoint(chapter_id: int, db: Session = Depends(get_db)):
+    """Get a specific chapter by ID"""
+    chapter = chapter_service.get_chapter_by_id(db, chapter_id)
+    if chapter is None:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+    return chapter
+
+@router.get("/chapters/{chapter_id}/flashcards", response_model=List[schemas.Flashcard])
+def get_chapter_flashcards_endpoint(
+    chapter_id: int, 
+    limit: int = Query(100, le=500), 
+    db: Session = Depends(get_db)
+):
+    """Get flashcards for a specific chapter"""
+    # Verify chapter exists
+    chapter = chapter_service.get_chapter_by_id(db, chapter_id)
+    if chapter is None:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+    
+    flashcards = chapter_service.get_flashcards_by_chapter(db, chapter_id, limit)
+    return flashcards
+
+@router.get("/chapters/stats")
+def get_chapters_stats_endpoint(db: Session = Depends(get_db)):
+    """Get statistics about chapters and their flashcards"""
+    return chapter_service.get_chapter_stats(db)
+
+@router.post("/flashcards/{flashcard_id}/assign-chapter")
+def assign_flashcard_to_chapter_endpoint(
+    flashcard_id: int, 
+    chapter_title: str, 
+    db: Session = Depends(get_db)
+):
+    """Assign a flashcard to a chapter"""
+    success = chapter_service.assign_flashcard_to_chapter(db, flashcard_id, chapter_title)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to assign flashcard to chapter")
+    return {"message": "Flashcard assigned to chapter successfully"}
 
 #
 # Webhook Endpoints

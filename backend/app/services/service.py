@@ -225,9 +225,28 @@ async def generate_quiz(content: str, question_count: int, question_types: List[
     return await ai_generate_quiz(content, question_count, question_types, ai_provider)
 
 async def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest) -> dict:
+    from .chapter_service import get_chapter_title_by_category, get_chapter_id_by_title
+    
     query = db.query(db_models.Flashcard)
+    
+    # Support both old category system and new chapter system
     if request.category:
-        query = query.filter(db_models.Flashcard.category == request.category)
+        # Try to map old category to new chapter title
+        chapter_title = get_chapter_title_by_category(request.category)
+        if chapter_title:
+            chapter_id = get_chapter_id_by_title(chapter_title)
+            if chapter_id:
+                query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
+            else:
+                # Fallback to old category system
+                query = query.filter(db_models.Flashcard.category == request.category)
+        else:
+            # Use category as-is (could be a chapter title)
+            chapter_id = get_chapter_id_by_title(request.category)
+            if chapter_id:
+                query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
+            else:
+                query = query.filter(db_models.Flashcard.category == request.category)
     
     flashcards = query.limit(request.count).all()
     if not flashcards:
