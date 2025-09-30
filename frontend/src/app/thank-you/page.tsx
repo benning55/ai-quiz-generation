@@ -5,17 +5,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ThankYou() {
   const router = useRouter();
   const [paymentStatus, setPaymentStatus] = useState<string>("");
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Check URL parameters for payment status
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('payment_success') || urlParams.get('payment_canceled');
+    const isPaymentCanceled = searchParams.get("payment_canceled")
+    const status = isPaymentCanceled ? 'canceled' : 'success'
     setPaymentStatus(status || 'success');
   }, []);
 
