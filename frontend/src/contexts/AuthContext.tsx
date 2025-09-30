@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 
 // Admin emails list
-export const ADMIN_EMAILS = ['bmaisonti@gmail.com'];
+export const ADMIN_EMAILS = ["bmaisonti@gmail.com", "liliantsang1414@gmail.com"]
 
 // User data type
 export interface UserData {
