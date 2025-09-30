@@ -415,256 +415,349 @@ export default function QuizPage() {
     </>
   );
 
-  const renderQuizCompleteScreen = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="py-8 max-w-4xl mx-auto h-[calc(100vh-12rem)] flex flex-col"
-    >
-      <Card className="shadow-xl overflow-hidden border-0 bg-gradient-to-tr from-white to-red-50 flex-1 flex flex-col">
-        {/* <div className="absolute right-0 top-0 w-32 h-32 bg-red-200 rounded-full -mt-16 -mr-16 opacity-20" /> */}
-        <div className="absolute left-0 bottom-0 w-40 h-40 bg-yellow-200 rounded-full -mb-20 -ml-20 opacity-20" />
-        
-        <CardHeader className="text-center relative z-10 flex-shrink-0">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 260, 
-              damping: 20, 
-              delay: 0.2 
-            }}
-            className="mx-auto mb-4"
-          >
-            <div className="relative inline-block">
-              <Trophy 
-                className={`w-16 h-16 sm:w-20 sm:h-20 ${
-                  score > Math.floor(quiz.length * 0.7) 
-                    ? "text-yellow-500" 
-                    : "text-gray-400"
-                }`} 
-              />
-              {score > Math.floor(quiz.length * 0.7) && (
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }}
-                  className="absolute inset-0 text-yellow-400"
-                >
-                  <Sparkles className="w-16 h-16 sm:w-20 sm:h-20" />
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
+  const renderQuizCompleteScreen = () => {
+    const percentage = Math.round((score / quiz.length) * 100);
+    const isExcellent = score > Math.floor(quiz.length * 0.7);
+    const isGood = score > Math.floor(quiz.length * 0.5);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="py-4 sm:py-8 max-w-4xl mx-auto px-2 sm:px-4"
+      >
+        <Card className="shadow-xl sm:shadow-2xl overflow-visible border-0 bg-gradient-to-br from-white via-red-50/30 to-yellow-50/30">
+          <div className="absolute right-0 top-0 w-32 h-32 sm:w-64 sm:h-64 bg-red-200 rounded-full -mt-16 sm:-mt-32 -mr-16 sm:-mr-32 opacity-10 blur-3xl" />
+          <div className="absolute left-0 bottom-0 w-32 h-32 sm:w-64 sm:h-64 bg-yellow-200 rounded-full -mb-16 sm:-mb-32 -ml-16 sm:-ml-32 opacity-10 blur-3xl" />
           
-          <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">
-            Quiz Complete!
-          </CardTitle>
-          
-          <div className="mt-2 text-base sm:text-lg">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-8 mt-4"
+          <CardHeader className="text-center relative z-10 pt-6 sm:pt-10 pb-4 sm:pb-6 px-4 sm:px-6">
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 200, 
+                damping: 15, 
+                delay: 0.1 
+              }}
+              className="mx-auto mb-4 sm:mb-6"
             >
-              <div className="flex flex-col items-center">
-                <div className="text-sm font-medium text-gray-500 mb-1">Score</div>
-                <div className="text-2xl sm:text-3xl font-bold text-red-600">
+              <div className="relative inline-block">
+                <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center ${
+                  isExcellent 
+                    ? "bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-lg shadow-yellow-500/50" 
+                    : isGood
+                      ? "bg-gradient-to-br from-blue-400 to-blue-500 shadow-lg shadow-blue-500/50"
+                      : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-lg shadow-gray-400/50"
+                }`}>
+                  <Trophy className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
+                </div>
+                {isExcellent && (
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.3, 1],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2"
+                  >
+                    <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-yellow-500" />
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <CardTitle className="text-xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-3">
+                {isExcellent ? "Excellent Work! 🎉" : isGood ? "Good Job! 👏" : "Keep Practicing! 💪"}
+              </CardTitle>
+              <p className="text-gray-600 text-sm sm:text-base">
+                {isExcellent 
+                  ? "You're well-prepared for the citizenship test!"
+                  : isGood 
+                    ? "You're on the right track!"
+                    : "Practice makes perfect!"}
+              </p>
+            </motion.div>
+          </CardHeader>
+          
+          <CardContent className="relative z-10 px-4 sm:px-6 pb-6 sm:pb-8">
+            {/* Stats Cards */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8"
+            >
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
+                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">Score</div>
+                <div className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent leading-tight">
                   {score}/{quiz.length}
                 </div>
-                <div className="text-sm font-medium text-gray-500 mt-1">
-                  {Math.round((score / quiz.length) * 100)}%
+                <div className="text-sm sm:text-lg font-semibold text-gray-700 mt-1">
+                  {percentage}%
                 </div>
               </div>
               
-              <div className="flex flex-col items-center">
-                <div className="text-sm font-medium text-gray-500 mb-1">Time</div>
-                <div className="text-2xl sm:text-3xl font-bold text-red-600">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
+                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">Time</div>
+                <div className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent leading-tight">
                   {formatTime(seconds)}
                 </div>
-                <div className="text-sm font-medium text-gray-500 mt-1">
+                <div className="text-xs sm:text-sm text-gray-500 mt-1">
                   mm:ss
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
+                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">{percentage}%</div>
+                <div className={`text-2xl sm:text-4xl font-bold leading-tight ${
+                  isExcellent 
+                    ? "text-green-600"
+                    : isGood
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                }`}>
+                  {isExcellent ? "🎉" : isGood ? "👍" : "💪"}
+                </div>
+                <div className="text-xs sm:text-sm text-gray-500 mt-1 text-center">
+                  {isExcellent ? "Excellent" : isGood ? "Good" : "Practice"}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Performance Bar */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md sm:shadow-lg border border-gray-100 mb-4 sm:mb-6"
+            >
+              <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800">Performance Level</h3>
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                  isExcellent 
+                    ? "bg-green-100 text-green-700"
+                    : isGood
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                }`}>
+                  {isExcellent ? "Advanced" : isGood ? "Intermediate" : "Beginner"}
+                </span>
+              </div>
+              
+              <div className="mb-3 sm:mb-4">
+                <div className="h-3 sm:h-4 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{ duration: 1.5, delay: 0.7, ease: "easeOut" }}
+                    className={`h-full rounded-full ${
+                      isExcellent 
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500" 
+                        : isGood 
+                          ? "bg-gradient-to-r from-yellow-500 to-orange-500" 
+                          : "bg-gradient-to-r from-red-500 to-pink-500"
+                    }`}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1 sm:mt-2">
+                  <span>0%</span>
+                  <span className="hidden sm:inline">50%</span>
+                  <span>70%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                {isExcellent ? (
+                  <>Great job! You&apos;ve demonstrated excellent knowledge of Canadian citizenship materials. You&apos;re ready for the real test!</>
+                ) : isGood ? (
+                  <>Good effort! You&apos;re making solid progress. With a bit more study, you&apos;ll be fully prepared for the citizenship test.</>
+                ) : (
+                  <>This is a great start! We recommend reviewing the study materials and practicing more to improve your score. You&apos;ve got this!</>
+                )}
+              </p>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="flex flex-col gap-2 sm:gap-3"
+            >
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full"
+              >
+                <Button 
+                  onClick={() => setShowSummary(true)}
+                  className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold"
+                  size="lg"
+                >
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
+                  View Detailed Summary
+                </Button>
+              </motion.div>
+              
+              {(userData?.has_active_payment || canStartFreeTest()) && (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full"
+                >
+                  <Button
+                    onClick={() => startQuizWithGate(userData?.has_active_payment ? 'paid' : (userId ? 'free' : 'guest'))}
+                    className={`${
+                      userData?.has_active_payment 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white' 
+                        : 'bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200'
+                    } px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold`}
+                    size="lg"
+                  >
+                    <RefreshCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="truncate">{userData?.has_active_payment ? 'Start New Test' : `Try Again (${remainingFreeTests()} left)`}</span>
+                  </Button>
+                </motion.div>
+              )}
+              
+              {!userData?.has_active_payment && (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full"
+                >
+                  <Link href="/payment-plan" className="block w-full">
+                    <Button className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold" size="lg">
+                      <Crown className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Upgrade to Premium
+                    </Button>
+                  </Link>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {!userData?.has_active_payment && !canStartFreeTest() && (
+              <p className="text-center text-gray-600 mt-3 sm:mt-4 text-xs sm:text-sm">You&apos;ve used all {FREE_TEST_LIMIT} free tests. Upgrade to continue practicing!</p>
+            )}
+            
+            <SignedOut>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="mt-2 sm:mt-3"
+              >
+                <Link href="/sign-up" className="block w-full">
+                  <Button 
+                    variant="outline" 
+                    className="px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl border-2 border-red-200 hover:bg-red-50 hover:border-red-300 w-full text-sm sm:text-base font-semibold"
+                    size="lg"
+                  >
+                    Sign Up for More Access
+                  </Button>
+                </Link>
+              </motion.div>
+            </SignedOut>
+          </CardContent>
+        </Card>
+
+        {/* Quiz Summary Modal */}
+        {showSummary && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 max-w-3xl w-full mx-auto max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Quiz Summary</h2>
+                  <p className="text-sm text-gray-500 mt-1">Review your answers and learn from mistakes</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowSummary(false)}
+                  className="rounded-full hover:bg-gray-100"
+                >
+                  <XCircle className="w-6 h-6 text-gray-500" />
+                </Button>
+              </div>
+              
+              <div className="overflow-y-auto flex-1 pr-2">
+                <div className="space-y-4">
+                  {quiz.map((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    const isCorrect = answerResults[index];
+                    
+                    return (
+                      <motion.div 
+                        key={index} 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`p-4 rounded-xl border-2 ${
+                          isCorrect 
+                            ? "bg-green-50 border-green-200" 
+                            : "bg-red-50 border-red-200"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            isCorrect ? "bg-green-500" : "bg-red-500"
+                          }`}>
+                            {isCorrect ? (
+                              <CheckCircle className="w-5 h-5 text-white" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-800 mb-2">
+                              Q{index + 1}: {question.question}
+                            </p>
+                            <div className="space-y-1">
+                              <p className={`text-sm font-medium ${
+                                isCorrect ? "text-green-700" : "text-red-700"
+                              }`}>
+                                Your answer: {question.type === "true_false" 
+                                  ? (userAnswer ? "True" : "False")
+                                  : userAnswer}
+                              </p>
+                              {!isCorrect && (
+                                <p className="text-sm font-medium text-green-700 flex items-center gap-1">
+                                  <CheckCircle className="w-4 h-4" />
+                                  Correct answer: {question.type === "true_false" 
+                                    ? (question.answer ? "True" : "False")
+                                    : question.answer}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
           </div>
-        </CardHeader>
-        
-        <CardContent className="relative z-10 px-4 sm:px-8 overflow-y-auto">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 mt-6 shadow-sm"
-          >
-            <h3 className="text-lg font-semibold mb-4">Your Performance</h3>
-            
-            <div className="mb-6">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Beginner</span>
-                <span>Advanced</span>
-              </div>
-              <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(score / quiz.length) * 100}%` }}
-                  transition={{ duration: 1, delay: 0.7 }}
-                  className={`h-full rounded-full ${
-                    score > Math.floor(quiz.length * 0.7) 
-                      ? "bg-green-500" 
-                      : score > Math.floor(quiz.length * 0.5) 
-                        ? "bg-yellow-500" 
-                        : "bg-red-500"
-                  }`}
-                />
-              </div>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              {score > Math.floor(quiz.length * 0.7) ? (
-                <p>Great job! You&apos;ve demonstrated excellent knowledge of Canadian citizenship materials. Keep it up!</p>
-              ) : score > Math.floor(quiz.length * 0.5) ? (
-                <p>Good effort! With a bit more study, you&apos;ll be well-prepared for the citizenship test.</p>
-              ) : (
-                <p>This is a good start. We recommend reviewing the study materials to improve your score.</p>
-              )}
-            </div>
-          </motion.div>
-        </CardContent>
-        
-        <CardFooter className="flex flex-col md:flex-row justify-center gap-4 pt-4 pb-8 relative z-10 px-4 sm:px-8 flex-shrink-0 bg-white/50 backdrop-blur-sm mt-4">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full sm:w-auto"
-          >
-            <Button 
-              onClick={() => setShowSummary(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full"
-              size="lg"
-            >
-              <Trophy className="w-5 h-5" />
-              View Quiz Summary
-            </Button>
-          </motion.div>
-          
-          {!userData?.has_active_payment && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto"
-            >
-              <Link href="/payment-plan" className="w-full sm:w-auto">
-                <Button className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full" size="lg">
-                  Go to purchase options
-                </Button>
-              </Link>
-            </motion.div>
-          )}
-          {(userData?.has_active_payment || canStartFreeTest()) && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto"
-            >
-              <Button
-                onClick={() => startQuizWithGate(userData?.has_active_payment ? 'paid' : (userId ? 'free' : 'guest'))}
-                className={`${userData?.has_active_payment ? 'bg-red-600 hover:bg-red-700 text-white' : ''} px-6 sm:px-8 py-4 sm:py-5 rounded-xl shadow-md flex items-center justify-center gap-2 w-full`}
-                size="lg"
-                variant={userData?.has_active_payment ? 'default' : 'outline'}
-              >
-                <RefreshCcw className="w-5 h-5" />
-                {userData?.has_active_payment ? 'Start New Test' : `Start with a free test (${remainingFreeTests()} left)`}
-              </Button>
-            </motion.div>
-          )}
-          {(!userData?.has_active_payment && !canStartFreeTest()) && (
-            <p className="text-sm text-gray-600 text-center">You have used your 5 free tests.</p>
-          )}
-          
-          <SignedOut>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto"
-            >
-              <Link href="/sign-up">
-                <Button 
-                  variant="outline" 
-                  className="px-6 sm:px-8 py-4 sm:py-5 rounded-xl border-2 w-full"
-                  size="lg"
-                >
-                  Sign Up for More Access
-                </Button>
-              </Link>
-            </motion.div>
-          </SignedOut>
-        </CardFooter>
-      </Card>
-
-      {/* Quiz Summary Modal */}
-      {showSummary && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-xl p-4 sm:p-6 max-w-2xl w-full mx-auto max-h-[80vh] overflow-y-auto"
-          >
-            <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quiz Summary</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSummary(false)}
-                className="rounded-full"
-              >
-                <XCircle className="w-6 h-6" />
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              {quiz.map((question, index) => {
-                const userAnswer = userAnswers[index];
-                const isCorrect = answerResults[index];
-                
-                return (
-                  <div key={index} className="border-b border-gray-100 pb-4">
-                    <p className="font-medium text-gray-800">{question.question}</p>
-                    <div className="mt-2 space-y-1">
-                      <p className={`text-sm ${
-                        isCorrect ? "text-green-600" : "text-red-600"
-                      }`}>
-                        Your answer: {question.type === "true_false" 
-                          ? (userAnswer ? "True" : "False")
-                          : userAnswer}
-                      </p>
-                      {!isCorrect && (
-                        <p className="text-sm text-green-600">
-                          Correct answer: {question.type === "true_false" 
-                            ? (question.answer ? "True" : "False")
-                            : question.answer}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </motion.div>
-  );
+        )}
+      </motion.div>
+    );
+  };
 
   const renderQuizQuestion = () => {
     const currentQuestion = quiz[currentQuestionIndex];
@@ -1076,7 +1169,7 @@ export default function QuizPage() {
                   {/* Chapter Selection */}
                   <div className='space-y-4'>
                     <h3 className='font-semibold text-gray-800 text-center'>Or Practice by Chapter</h3>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       {chapters.map((chapter, index) => (
                         <motion.button
                           key={chapter.id}
@@ -1084,15 +1177,15 @@ export default function QuizPage() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => startQuizWithGate('paid', chapter.id)}
                           disabled={isLoading}
-                          className='p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50 h-full'
+                          className='p-4 md:p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50'
                         >
                           <div className='flex items-start gap-3'>
-                            <div className='w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
-                              <span className='text-red-600 font-semibold'>{chapter.order || index + 1}</span>
+                            <div className='w-9 h-9 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
+                              <span className='text-red-600 font-semibold text-sm md:text-base'>{chapter.order || index + 1}</span>
                             </div>
                             <div className='flex-1 min-w-0'>
-                              <h4 className='font-semibold text-gray-800 group-hover:text-red-700 mb-2'>{chapter.title}</h4>
-                              <p className='text-sm text-gray-600 leading-relaxed'>{chapter.description}</p>
+                              <h4 className='font-semibold text-sm md:text-base text-gray-800 group-hover:text-red-700 mb-1 md:mb-2'>{chapter.title}</h4>
+                              <p className='text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3 md:line-clamp-none'>{chapter.description}</p>
                             </div>
                           </div>
                         </motion.button>
