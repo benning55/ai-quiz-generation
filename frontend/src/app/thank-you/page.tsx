@@ -159,7 +159,14 @@ export default function ThankYou() {
               ) : (
                 <>
                   Your payment was cancelled. No charges have been made to your account. 
-                  You can try again anytime or continue with our free features.
+                  If you&apos;re really interested but have second thoughts, please contact{" "}
+                  <a 
+                    href="mailto:liliantsang1414@gmail.com" 
+                    className="text-red-600 hover:text-red-700 underline font-semibold"
+                  >
+                    liliantsang1414@gmail.com
+                  </a>
+                  {" "}for a 30% discount on our 7-day or 30-day plans!
                 </>
               )}
             </motion.p>
@@ -273,6 +280,45 @@ export default function ThankYou() {
                       <p className="text-gray-600 text-sm">Access comprehensive study guides</p>
                     </div>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Special Discount Offer for Cancelled Payments */}
+            {!isSuccess && (
+              <motion.div 
+                variants={itemVariants}
+                className="mt-12 bg-gradient-to-br from-orange-50 to-yellow-50 p-8 rounded-xl shadow-lg border border-orange-200"
+              >
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold mb-4 text-gray-800">
+                    🎯 Special Discount Offer!
+                  </h3>
+                  <p className="text-lg text-gray-700 mb-6">
+                    Still interested in premium access? We understand that sometimes timing isn&apos;t right.
+                  </p>
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-orange-300 mb-6">
+                    <div className="text-3xl font-bold text-orange-600 mb-2">
+                      30% OFF
+                    </div>
+                    <div className="text-lg text-gray-600 mb-4">
+                      Available for both our <span className="font-bold text-blue-600">7-day</span> and <span className="font-bold text-blue-600">30-day</span> plans
+                    </div>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <a 
+                        href="mailto:liliantsang1414@gmail.com?subject=30% Discount Request - Canadian Citizenship Test&body=Hi, I was interested in the premium plan but cancelled my payment. Could you please provide me with the 30% discount for the 7-day or 30-day plan mentioned on your website?"
+                        className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
+                      >
+                        📧 Contact for 30% Discount
+                      </a>
+                    </motion.div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Email: <span className="font-semibold">liliantsang1414@gmail.com</span>
+                  </p>
                 </div>
               </motion.div>
             )}
