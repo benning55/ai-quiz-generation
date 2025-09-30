@@ -6,9 +6,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-export default function ThankYou() {
+function ThankYouContent() {
   const router = useRouter();
   const [paymentStatus, setPaymentStatus] = useState<string>("");
   const searchParams = useSearchParams()
@@ -343,5 +343,17 @@ export default function ThankYou() {
         </motion.div>
       </main>
     </div>
+  )
+}
+
+export default function ThankYou() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    }>
+      <ThankYouContent />
+    </Suspense>
   )
 }
