@@ -68,6 +68,9 @@ export default function FlashcardManager() {
   })
   const [selectedFlashcards, setSelectedFlashcards] = useState<Set<number>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showUnassignedOnly, setShowUnassignedOnly] = useState(false)
+  const [bulkChapterId, setBulkChapterId] = useState<number | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -77,7 +80,7 @@ export default function FlashcardManager() {
     filterFlashcards()
     // Clear selection when filters change
     setSelectedFlashcards(new Set())
-  }, [flashcards, searchTerm, selectedChapter])
+  }, [flashcards, searchTerm, selectedChapter, showUnassignedOnly])
 
   useEffect(() => {
     // Clear selection when page changes
@@ -133,6 +136,11 @@ export default function FlashcardManager() {
     // Filter by chapter
     if (selectedChapter !== null) {
       filtered = filtered.filter(card => card.chapter_id === selectedChapter)
+    }
+
+    // Filter for unassigned only
+    if (showUnassignedOnly) {
+      filtered = filtered.filter(card => !card.chapter_id)
     }
 
     setFilteredFlashcards(filtered)
@@ -292,6 +300,34 @@ export default function FlashcardManager() {
     }
   }
 
+  const handleBulkUpdateChapter = async () => {
+    if (selectedFlashcards.size === 0 || !bulkChapterId) return
+    
+    const chapter = chapters.find(c => c.id === bulkChapterId)
+    if (!chapter) return
+
+    const confirmMessage = `Are you sure you want to assign ${selectedFlashcards.size} flashcard${selectedFlashcards.size > 1 ? 's' : ''} to "${chapter.title}"?`
+    if (!confirm(confirmMessage)) return
+
+    setIsUpdating(true)
+    try {
+      const updatePromises = Array.from(selectedFlashcards).map(id =>
+        fetch(`${API_URL}/api/flashcards/${id}/assign-chapter?chapter_title=${encodeURIComponent(chapter.title)}`, {
+          method: 'POST'
+        })
+      )
+      
+      await Promise.all(updatePromises)
+      setSelectedFlashcards(new Set())
+      setBulkChapterId(null)
+      await loadData()
+    } catch (error) {
+      console.error('Error updating flashcards:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   // Pagination
   const totalPages = Math.ceil(filteredFlashcards.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -338,8 +374,14 @@ export default function FlashcardManager() {
               {/* Chapter Filter */}
               <select
                 value={selectedChapter || ''}
-                onChange={(e) => setSelectedChapter(e.target.value ? parseInt(e.target.value) : null)}
+                onChange={(e) => {
+                  setSelectedChapter(e.target.value ? parseInt(e.target.value) : null)
+                  if (e.target.value) {
+                    setShowUnassignedOnly(false)
+                  }
+                }}
                 className="px-3 py-2 border rounded-md"
+                disabled={showUnassignedOnly}
               >
                 <option value="">All Chapters</option>
                 {chapters.map(chapter => (
@@ -348,20 +390,59 @@ export default function FlashcardManager() {
                   </option>
                 ))}
               </select>
+
+              {/* Unassigned Filter Toggle */}
+              <Button
+                variant={showUnassignedOnly ? "default" : "outline"}
+                onClick={() => {
+                  setShowUnassignedOnly(!showUnassignedOnly)
+                  if (!showUnassignedOnly) {
+                    setSelectedChapter(null)
+                  }
+                }}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                {showUnassignedOnly ? "Showing Unassigned" : "Show Unassigned"}
+              </Button>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {selectedFlashcards.size > 0 && (
-                <Button 
-                  onClick={handleBulkDelete} 
-                  variant="outline"
-                  disabled={isDeleting}
-                  className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                >
-                  <Trash className="w-4 h-4 mr-2" />
-                  Delete Selected ({selectedFlashcards.size})
-                </Button>
+                <>
+                  <div className="flex gap-2 items-center border rounded-md px-3 py-2 bg-blue-50">
+                    <select
+                      value={bulkChapterId || ''}
+                      onChange={(e) => setBulkChapterId(e.target.value ? parseInt(e.target.value) : null)}
+                      className="px-2 py-1 border rounded text-sm"
+                    >
+                      <option value="">Select Chapter...</option>
+                      {chapters.map(chapter => (
+                        <option key={chapter.id} value={chapter.id}>
+                          {chapter.order}. {chapter.title}
+                        </option>
+                      ))}
+                    </select>
+                    <Button 
+                      onClick={handleBulkUpdateChapter}
+                      size="sm"
+                      disabled={!bulkChapterId || isUpdating}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <BookOpen className="w-3 h-3 mr-1" />
+                      Assign to {selectedFlashcards.size}
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={handleBulkDelete} 
+                    variant="outline"
+                    disabled={isDeleting}
+                    className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                  >
+                    <Trash className="w-4 h-4 mr-2" />
+                    Delete ({selectedFlashcards.size})
+                  </Button>
+                </>
               )}
               <Button onClick={exportFlashcards} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
