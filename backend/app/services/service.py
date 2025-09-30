@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import random
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 import stripe
@@ -242,43 +243,108 @@ async def generate_quiz(content: str, question_count: int, question_types: List[
     return await ai_generate_quiz(content, question_count, question_types, ai_provider)
 
 async def generate_quiz_from_flashcards_service(db: Session, request: schemas.QuizRequest, chapter_id: int = None) -> dict:
-    from .chapter_service import get_chapter_title_by_category, get_chapter_id_by_title
+    """
+    Generate quiz from flashcards with smart distribution:
     
-    query = db.query(db_models.Flashcard)
+    User Tiers:
+    - Guest (not logged in): 3 questions
+    - Free user (logged in): 5 questions
+    - Premium user: 20 questions
     
-    # Priority 1: Use chapter_id if provided (from chapter selection)
+    Distribution Logic:
+    - Chapter-specific: Random selection from that chapter (respecting tier limit)
+    - Mixed test (Premium/20Q): 2 questions per chapter, balanced across all 10 chapters
+    - Mixed test (Free/Guest): Random selection from all chapters (respecting tier limit)
+    """
+    from .chapter_service import get_all_chapters
+    
+    requested_count = request.count
+    max_questions = min(requested_count, 20)  # Cap at 20 questions max
+    is_premium_test = requested_count >= 20  # Premium users request 20 questions
+    
+    # Case 1: Specific chapter selected (Premium users only)
     if chapter_id:
-        query = query.filter(db_models.Flashcard.chapter_id == chapter_id)
-    # Priority 2: Support both old category system and new chapter system
-    elif request.category:
-        # Try to map old category to new chapter title
-        chapter_title = get_chapter_title_by_category(request.category)
-        if chapter_title:
-            mapped_chapter_id = get_chapter_id_by_title(chapter_title)
-            if mapped_chapter_id:
-                query = query.filter(db_models.Flashcard.chapter_id == mapped_chapter_id)
-            else:
-                # Fallback to old category system
-                query = query.filter(db_models.Flashcard.category == request.category)
-        else:
-            # Use category as-is (could be a chapter title)
-            mapped_chapter_id = get_chapter_id_by_title(request.category)
-            if mapped_chapter_id:
-                query = query.filter(db_models.Flashcard.chapter_id == mapped_chapter_id)
-            else:
-                query = query.filter(db_models.Flashcard.category == request.category)
-    
-    flashcards = query.limit(request.count * 3).all()  # Get more flashcards to have variety for AI
-    if not flashcards:
-        if chapter_id:
-            raise HTTPException(status_code=404, detail=f"No flashcards found for chapter ID {chapter_id}. This chapter may not have content yet.")
-        else:
-            raise HTTPException(status_code=404, detail="No flashcards found for the given criteria.")
+        flashcards = db.query(db_models.Flashcard).filter(
+            db_models.Flashcard.chapter_id == chapter_id
+        ).all()
         
-    # Combine flashcards into a text block for the AI
-    content = "\n\n".join([f"Q: {f.question}\nA: {f.answer}" for f in flashcards])
+        if not flashcards:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No flashcards found for chapter ID {chapter_id}. This chapter may not have content yet."
+            )
+        
+        # Randomly select up to requested count from this chapter
+        selected_flashcards = random.sample(flashcards, min(len(flashcards), max_questions))
     
-    return await generate_quiz(content, len(flashcards), request.question_types)
+    # Case 2: Mixed test with premium distribution (20 questions)
+    elif is_premium_test:
+        all_chapters = get_all_chapters(db)
+        selected_flashcards = []
+        questions_per_chapter = 2  # Target 2 questions per chapter for premium
+        
+        # First pass: Try to get 2 questions from each chapter
+        for chapter in all_chapters:
+            chapter_flashcards = db.query(db_models.Flashcard).filter(
+                db_models.Flashcard.chapter_id == chapter.id
+            ).all()
+            
+            if chapter_flashcards:
+                # Take up to 2 random questions from this chapter
+                num_to_take = min(len(chapter_flashcards), questions_per_chapter)
+                selected_from_chapter = random.sample(chapter_flashcards, num_to_take)
+                selected_flashcards.extend(selected_from_chapter)
+        
+        # If we have fewer than 20, fill the rest randomly from all flashcards
+        if len(selected_flashcards) < max_questions:
+            # Get all flashcards not already selected
+            selected_ids = {f.id for f in selected_flashcards}
+            remaining_flashcards = db.query(db_models.Flashcard).filter(
+                db_models.Flashcard.chapter_id.isnot(None),
+                ~db_models.Flashcard.id.in_(selected_ids)
+            ).all()
+            
+            if remaining_flashcards:
+                needed = max_questions - len(selected_flashcards)
+                additional = random.sample(remaining_flashcards, min(len(remaining_flashcards), needed))
+                selected_flashcards.extend(additional)
+        
+        # If we have more than 20 (shouldn't happen with 2 per chapter and 10 chapters)
+        # trim down to exactly 20
+        if len(selected_flashcards) > max_questions:
+            selected_flashcards = random.sample(selected_flashcards, max_questions)
+        
+        # Check if we have any flashcards at all
+        if not selected_flashcards:
+            raise HTTPException(
+                status_code=404, 
+                detail="No flashcards found with assigned chapters. Please assign flashcards to chapters first."
+            )
+    
+    # Case 3: Mixed test for free/guest users (3 or 5 questions)
+    else:
+        # Just get random flashcards from all chapters
+        all_flashcards = db.query(db_models.Flashcard).filter(
+            db_models.Flashcard.chapter_id.isnot(None)
+        ).all()
+        
+        if not all_flashcards:
+            raise HTTPException(
+                status_code=404, 
+                detail="No flashcards found with assigned chapters. Please assign flashcards to chapters first."
+            )
+        
+        # Randomly select the requested number of questions
+        selected_flashcards = random.sample(all_flashcards, min(len(all_flashcards), max_questions))
+    
+    # Shuffle the final selection for randomness
+    random.shuffle(selected_flashcards)
+    
+    # Combine selected flashcards into a text block for the AI
+    content = "\n\n".join([f"Q: {f.question}\nA: {f.answer}" for f in selected_flashcards])
+    
+    # Generate exactly the number of questions we have flashcards for
+    return await generate_quiz(content, len(selected_flashcards), request.question_types)
 
 
 #
