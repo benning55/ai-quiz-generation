@@ -1076,7 +1076,7 @@ export default function QuizPage() {
                   {/* Chapter Selection */}
                   <div className='space-y-4'>
                     <h3 className='font-semibold text-gray-800 text-center'>Or Practice by Chapter</h3>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                       {chapters.map((chapter, index) => (
                         <motion.button
                           key={chapter.id}
@@ -1084,15 +1084,15 @@ export default function QuizPage() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => startQuizWithGate('paid', chapter.id)}
                           disabled={isLoading}
-                          className='p-4 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50'
+                          className='p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50 h-full'
                         >
                           <div className='flex items-start gap-3'>
-                            <div className='w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
-                              <span className='text-red-600 font-semibold text-sm'>{chapter.order || index + 1}</span>
+                            <div className='w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
+                              <span className='text-red-600 font-semibold'>{chapter.order || index + 1}</span>
                             </div>
-                            <div className='flex-1'>
-                              <h4 className='font-medium text-gray-800 group-hover:text-red-700 text-sm'>{chapter.title}</h4>
-                              <p className='text-xs text-gray-500 mt-1 line-clamp-2'>{chapter.description}</p>
+                            <div className='flex-1 min-w-0'>
+                              <h4 className='font-semibold text-gray-800 group-hover:text-red-700 mb-2'>{chapter.title}</h4>
+                              <p className='text-sm text-gray-600 leading-relaxed'>{chapter.description}</p>
                             </div>
                           </div>
                         </motion.button>
