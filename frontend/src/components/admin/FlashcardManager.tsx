@@ -20,7 +20,10 @@ import {
   Save,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash,
+  CheckSquare,
+  Square
 } from "lucide-react"
 import { API_ENDPOINTS, API_URL } from '@/config/api'
 
@@ -63,6 +66,8 @@ export default function FlashcardManager() {
     chapter_id: null as number | null,
     tags: '' as string
   })
+  const [selectedFlashcards, setSelectedFlashcards] = useState<Set<number>>(new Set())
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -70,7 +75,14 @@ export default function FlashcardManager() {
 
   useEffect(() => {
     filterFlashcards()
+    // Clear selection when filters change
+    setSelectedFlashcards(new Set())
   }, [flashcards, searchTerm, selectedChapter])
+
+  useEffect(() => {
+    // Clear selection when page changes
+    setSelectedFlashcards(new Set())
+  }, [currentPage])
 
   const loadData = async () => {
     try {
@@ -239,6 +251,47 @@ export default function FlashcardManager() {
     URL.revokeObjectURL(url)
   }
 
+  // Bulk selection functions
+  const toggleSelectAll = () => {
+    if (selectedFlashcards.size === currentFlashcards.length) {
+      setSelectedFlashcards(new Set())
+    } else {
+      setSelectedFlashcards(new Set(currentFlashcards.map(f => f.id)))
+    }
+  }
+
+  const toggleSelectFlashcard = (id: number) => {
+    const newSelected = new Set(selectedFlashcards)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedFlashcards(newSelected)
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedFlashcards.size === 0) return
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedFlashcards.size} flashcard${selectedFlashcards.size > 1 ? 's' : ''}?`
+    if (!confirm(confirmMessage)) return
+
+    setIsDeleting(true)
+    try {
+      const deletePromises = Array.from(selectedFlashcards).map(id =>
+        fetch(`${API_ENDPOINTS.FLASHCARDS}${id}`, { method: 'DELETE' })
+      )
+      
+      await Promise.all(deletePromises)
+      setSelectedFlashcards(new Set())
+      await loadData()
+    } catch (error) {
+      console.error('Error deleting flashcards:', error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   // Pagination
   const totalPages = Math.ceil(filteredFlashcards.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -299,6 +352,17 @@ export default function FlashcardManager() {
 
             {/* Actions */}
             <div className="flex gap-2">
+              {selectedFlashcards.size > 0 && (
+                <Button 
+                  onClick={handleBulkDelete} 
+                  variant="outline"
+                  disabled={isDeleting}
+                  className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                >
+                  <Trash className="w-4 h-4 mr-2" />
+                  Delete Selected ({selectedFlashcards.size})
+                </Button>
+              )}
               <Button onClick={exportFlashcards} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export
@@ -311,7 +375,7 @@ export default function FlashcardManager() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-600">Total Flashcards</p>
               <p className="text-2xl font-bold text-blue-800">{flashcards.length}</p>
@@ -332,6 +396,12 @@ export default function FlashcardManager() {
               <p className="text-sm text-purple-600">Filtered Results</p>
               <p className="text-2xl font-bold text-purple-800">{filteredFlashcards.length}</p>
             </div>
+            {selectedFlashcards.size > 0 && (
+              <div className="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                <p className="text-sm text-red-600">Selected</p>
+                <p className="text-2xl font-bold text-red-800">{selectedFlashcards.size}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -343,6 +413,18 @@ export default function FlashcardManager() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="text-left p-4 font-medium w-12">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="flex items-center justify-center w-5 h-5 border border-gray-300 rounded hover:bg-gray-100"
+                    >
+                      {selectedFlashcards.size === currentFlashcards.length && currentFlashcards.length > 0 ? (
+                        <CheckSquare className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Square className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
+                  </th>
                   <th className="text-left p-4 font-medium">Question</th>
                   <th className="text-left p-4 font-medium">Answer</th>
                   <th className="text-left p-4 font-medium">Chapter</th>
@@ -358,8 +440,20 @@ export default function FlashcardManager() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="border-b hover:bg-gray-50"
+                      className={`border-b hover:bg-gray-50 ${selectedFlashcards.has(flashcard.id) ? 'bg-blue-50' : ''}`}
                     >
+                      <td className="p-4">
+                        <button
+                          onClick={() => toggleSelectFlashcard(flashcard.id)}
+                          className="flex items-center justify-center w-5 h-5 border border-gray-300 rounded hover:bg-gray-100"
+                        >
+                          {selectedFlashcards.has(flashcard.id) ? (
+                            <CheckSquare className="w-4 h-4 text-blue-600" />
+                          ) : (
+                            <Square className="w-4 h-4 text-gray-400" />
+                          )}
+                        </button>
+                      </td>
                       <td className="p-4 max-w-xs">
                         <p className="truncate" title={flashcard.question}>
                           {flashcard.question}
