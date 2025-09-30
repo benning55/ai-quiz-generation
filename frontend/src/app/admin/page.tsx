@@ -11,10 +11,11 @@ import Link from 'next/link'
 import { API_ENDPOINTS } from '@/config/api'
 import FlashcardManager from '@/components/admin/FlashcardManager'
 import BulkImporter from '@/components/admin/BulkImporter'
+import UserManager from '@/components/admin/UserManager'
 
 export default function AdminPage() {
   const { userData, setUserData, isAdmin, isLoading } = useAuth()
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'flashcards' | 'import'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'flashcards' | 'users' | 'import'>('dashboard')
   const [stats, setStats] = useState({
     totalUsers: 1250,
     activeUsers: 890,
@@ -191,6 +192,17 @@ export default function AdminPage() {
                 >
                   <BookOpen className="w-4 h-4 inline mr-2" />
                   Flashcards
+                </button>
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className={`px-6 py-2 rounded-md transition-colors ${
+                    activeTab === 'users' 
+                      ? 'bg-red-600 text-white' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Users className="w-4 h-4 inline mr-2" />
+                  Users
                 </button>
                 <button
                   onClick={() => setActiveTab('import')}
@@ -506,6 +518,11 @@ export default function AdminPage() {
             {/* Flashcard Management Tab */}
             {activeTab === 'flashcards' && (
               <FlashcardManager />
+            )}
+
+            {/* User Management Tab */}
+            {activeTab === 'users' && (
+              <UserManager />
             )}
 
             {/* Bulk Import Tab */}

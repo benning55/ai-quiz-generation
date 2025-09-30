@@ -196,6 +196,116 @@ async def generate_quiz_from_flashcards_endpoint(
     return {"quiz": quiz_data}
 
 #
+# User Management Endpoints (Admin)
+#
+@router.get("/users/")
+def get_all_users_endpoint(db: Session = Depends(get_db)):
+    """Get all users with payment information (admin only - add auth check in production)"""
+    users = db.query(db_models.User).order_by(db_models.User.created_at.desc()).all()
+    
+    # Enrich each user with payment information using the same function as the rest of the system
+    user_list = []
+    for user in users:
+        # Use the same get_user_active_payment function that the rest of the system uses
+        active_payment = service.get_user_active_payment(db, user.id)
+        
+        # Build user data with payment info (same format as /api/user endpoint)
+        user_data = {
+            "id": user.id,
+            "clerk_user_id": user.clerk_id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "full_name": f"{user.first_name or ''} {user.last_name or ''}".strip() or "Unknown",
+            "has_active_payment": bool(active_payment),
+            "member_tier": active_payment.tier if active_payment else "free",
+            "expires_at": active_payment.expires_at.isoformat() if active_payment else None,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+        }
+        user_list.append(user_data)
+    
+    return user_list
+
+@router.put("/users/{user_id}")
+def update_user_endpoint(
+    user_id: int,
+    update_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Update user payment status and tier (admin only - creates/updates Payment record)"""
+    from datetime import datetime
+    
+    user = db.query(db_models.User).filter(db_models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get payment data from update
+    has_active_payment = update_data.get('has_active_payment', False)
+    member_tier = update_data.get('member_tier', 'free')
+    expires_at = update_data.get('expires_at')
+    
+    # Parse expires_at if it's a string
+    if expires_at and isinstance(expires_at, str):
+        try:
+            expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        except:
+            expires_at = None
+    
+    if has_active_payment and member_tier and expires_at:
+        # Create or update payment record (the single source of truth)
+        # Check if there's an existing active payment
+        existing_payment = db.query(db_models.Payment).filter(
+            db_models.Payment.user_id == user_id,
+            db_models.Payment.status == 'succeeded'
+        ).order_by(db_models.Payment.created_at.desc()).first()
+        
+        if existing_payment:
+            # Update existing payment
+            existing_payment.tier = member_tier
+            existing_payment.expires_at = expires_at
+            existing_payment.status = 'succeeded'
+        else:
+            # Create new payment record (admin manual entry)
+            new_payment = db_models.Payment(
+                user_id=user_id,
+                stripe_payment_intent_id=f"admin_manual_{user_id}_{int(datetime.utcnow().timestamp())}",
+                amount=0,  # Admin manual entry, no charge
+                tier=member_tier,
+                status='succeeded',
+                created_at=datetime.utcnow(),
+                expires_at=expires_at
+            )
+            db.add(new_payment)
+    else:
+        # If setting to inactive, expire all existing payments
+        if not has_active_payment:
+            active_payments = db.query(db_models.Payment).filter(
+                db_models.Payment.user_id == user_id,
+                db_models.Payment.status == 'succeeded'
+            ).all()
+            for payment in active_payments:
+                payment.expires_at = datetime.utcnow()  # Set to expired
+    
+    db.commit()
+    
+    # Return user data in the same format as GET /users/
+    active_payment = service.get_user_active_payment(db, user_id)
+    return {
+        "id": user.id,
+        "clerk_user_id": user.clerk_id,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "full_name": f"{user.first_name or ''} {user.last_name or ''}".strip() or "Unknown",
+        "has_active_payment": bool(active_payment),
+        "member_tier": active_payment.tier if active_payment else "free",
+        "expires_at": active_payment.expires_at.isoformat() if active_payment else None,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+    }
+
+#
 # Payment Endpoints
 #
 @router.post("/create-checkout-session")
