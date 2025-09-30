@@ -618,7 +618,7 @@ export default function QuizPage() {
                   className="w-full"
                 >
                   <Button
-                    onClick={() => startQuizWithGate(userData?.has_active_payment ? 'paid' : (userId ? 'free' : 'guest'))}
+                    onClick={() => window.location.reload()}
                     className={`${
                       userData?.has_active_payment 
                         ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white' 
