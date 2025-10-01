@@ -382,7 +382,7 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
     # Define pricing tiers
     pricing_tiers = {
         "7days": {
-            "amount": 2900,  # $29.00 CAD in cents
+            "amount": 100,  # $29.00 CAD in cents
             "currency": "cad",
             "name": "7-Day Premium Access",
             "duration_days": 7
@@ -412,7 +412,7 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
         # Fallback to environment variable
         base_url = FRONTEND_URL
 
-    success_url = f"{base_url}/thank-you?payment_success=true"
+    success_url = f"{base_url}/thank-you?payment_success=true&tier={tier}&days={tier_config['duration_days']}"
     cancel_url = f"{base_url}/thank-you?payment_canceled=true"
 
     try:
@@ -434,7 +434,13 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
                 'user_id': user.id,
                 'tier': tier,
                 'duration_days': str(tier_config['duration_days'])
-            }
+            },
+            # Disable Stripe Link - card payment only
+            payment_intent_data={
+                'setup_future_usage': None,  # Don't save payment method
+            },
+            # Optional: Add billing address collection for better fraud protection
+            billing_address_collection='required'
         )
         print("====")
         print(checkout_session)

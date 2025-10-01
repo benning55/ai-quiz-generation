@@ -54,6 +54,16 @@ export default function QuizPage() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [chapters, setChapters] = useState<any[]>([]);
   
+  // Quiz limit tracking for 7-day plan
+  const [quizLimits, setQuizLimits] = useState<{
+    canStart: boolean;
+    tier: string;
+    completedTests: number;
+    testLimit: number;
+    remainingTests: number;
+    message: string;
+  } | null>(null);
+  
   // Confetti effect for correct answers
   const triggerConfetti = useCallback(() => {
     confetti({
@@ -62,6 +72,38 @@ export default function QuizPage() {
       origin: { y: 0.6 }
     });
   }, []);
+
+  // Check quiz limits for paid users
+  const checkQuizLimits = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+      const response = await fetch(`${API_URL}/api/quiz/can-start`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setQuizLimits({
+          canStart: data.can_start,
+          tier: data.tier,
+          completedTests: data.completed_tests,
+          testLimit: data.test_limit,
+          remainingTests: data.remaining_tests,
+          message: data.message
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check quiz limits:', error);
+    }
+  }, [userId, getToken]);
 
   // Progress tracking functions
   const startQuizTracking = async (chapterId?: number | null) => {
@@ -85,6 +127,25 @@ export default function QuizPage() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Check if limit was reached
+        if (data.limit_reached) {
+          alert(`Test limit reached! You've completed ${data.completed_tests} out of ${data.test_limit} tests for your plan.`);
+          return null;
+        }
+        
+        // Update quiz limits if provided
+        if (data.test_limit && data.test_limit > 0) {
+          setQuizLimits({
+            canStart: true,
+            tier: quizLimits?.tier || '7days',
+            completedTests: data.completed_tests,
+            testLimit: data.test_limit,
+            remainingTests: data.test_limit - data.completed_tests,
+            message: data.message
+          });
+        }
+        
         return data.quiz_attempt_id;
       } else {
         console.error('Failed to start quiz tracking');
@@ -182,8 +243,10 @@ export default function QuizPage() {
 
     if (userData?.has_active_payment) {
       loadChapters();
+      // Also check quiz limits for paid users
+      checkQuizLimits();
     }
-  }, [userData?.has_active_payment]);
+  }, [userData?.has_active_payment, userId, checkQuizLimits]);
 
   const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid', chapterId?: number | null) => {
     setIsLoading(true);
@@ -1138,6 +1201,43 @@ export default function QuizPage() {
                     <Crown className='w-6 h-6' />
                     <span className='font-semibold text-lg'>Premium Access</span>
                   </div>
+                  
+                  {/* Show remaining tests for 7-day plan */}
+                  {quizLimits && quizLimits.testLimit > 0 && (
+                    <div className='bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4'>
+                      <div className='flex items-center justify-between'>
+                        <div>
+                          <p className='font-semibold text-blue-800'>Tests Remaining</p>
+                          <p className='text-sm text-blue-600'>{quizLimits.tier === '7days' ? '7-Day Plan' : 'Trial Plan'}</p>
+                        </div>
+                        <div className='text-right'>
+                          <p className='text-3xl font-bold text-blue-600'>{quizLimits.remainingTests}</p>
+                          <p className='text-sm text-gray-600'>of {quizLimits.testLimit}</p>
+                        </div>
+                      </div>
+                      {quizLimits.remainingTests <= 5 && quizLimits.remainingTests > 0 && (
+                        <p className='text-xs text-orange-600 mt-2 font-medium'>⚠️ Running low on tests! Consider upgrading to unlimited.</p>
+                      )}
+                      {quizLimits.remainingTests === 0 && (
+                        <div className='mt-3 p-3 bg-red-100 rounded-lg'>
+                          <p className='text-sm text-red-700 font-semibold'>❌ Test limit reached!</p>
+                          <p className='text-xs text-red-600 mt-1'>Upgrade to 1-month plan for unlimited tests.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Show unlimited badge for 1-month/premium users */}
+                  {quizLimits && quizLimits.testLimit === 0 && (
+                    <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4'>
+                      <div className='flex items-center justify-center gap-2'>
+                        <Sparkles className='w-5 h-5 text-green-600' />
+                        <p className='font-semibold text-green-800'>Unlimited Tests</p>
+                      </div>
+                      <p className='text-sm text-green-600 text-center mt-1'>Take as many practice tests as you need!</p>
+                    </div>
+                  )}
+                  
                   <p className='text-gray-600 text-center mb-6'>
                     Choose your quiz type - practice by chapter or take the full mixed test!
                   </p>
@@ -1152,14 +1252,16 @@ export default function QuizPage() {
                     <Button
                       onClick={() => startQuizWithGate('paid', null)}
                       size='lg'
-                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
-                      disabled={isLoading}
+                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full disabled:opacity-50 disabled:cursor-not-allowed'
+                      disabled={isLoading || (quizLimits?.remainingTests === 0)}
                     >
                       {isLoading ? (
                         <div className='flex items-center gap-2'>
                           <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
                           <span>Generating Quiz...</span>
                         </div>
+                      ) : quizLimits?.remainingTests === 0 ? (
+                        "Test Limit Reached"
                       ) : (
                         "Start Full Mixed Test (20 Questions)"
                       )}
@@ -1176,8 +1278,8 @@ export default function QuizPage() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => startQuizWithGate('paid', chapter.id)}
-                          disabled={isLoading}
-                          className='p-4 md:p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50'
+                          disabled={isLoading || (quizLimits?.remainingTests === 0)}
+                          className='p-4 md:p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50 disabled:cursor-not-allowed'
                         >
                           <div className='flex items-start gap-3'>
                             <div className='w-9 h-9 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>

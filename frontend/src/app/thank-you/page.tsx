@@ -11,6 +11,7 @@ import { useEffect, useState, Suspense } from "react";
 function ThankYouContent() {
   const router = useRouter();
   const [paymentStatus, setPaymentStatus] = useState<string>("");
+  const [planDetails, setPlanDetails] = useState({ tier: "", days: 0, tests: 0 });
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -18,6 +19,22 @@ function ThankYouContent() {
     const isPaymentCanceled = searchParams.get("payment_canceled")
     const status = isPaymentCanceled ? 'canceled' : 'success'
     setPaymentStatus(status || 'success');
+    
+    // Get plan details from URL
+    const tier = searchParams.get("tier") || ""
+    const days = parseInt(searchParams.get("days") || "0")
+    
+    // Calculate number of tests based on plan
+    // Free users get 3 tests, paid users get unlimited
+    // But we show "20 tests" messaging for 7-day plan
+    let tests = 0
+    if (tier === "7days") {
+      tests = 20  // 20 tests for 7-day plan
+    } else if (tier === "1month") {
+      tests = 100  // Unlimited (show as 100+) for 1-month plan
+    }
+    
+    setPlanDetails({ tier, days, tests })
   }, []);
 
   const containerVariants = {
@@ -154,8 +171,15 @@ function ThankYouContent() {
             >
               {isSuccess ? (
                 <>
-                  Thank you for your purchase! Your premium membership is now active. 
-                  You can now access all our premium features and unlimited practice tests.
+                  Thank you for your purchase! Your premium membership is now active.{" "}
+                  {planDetails.tests > 0 && planDetails.days > 0 && (
+                    <span className="font-semibold text-green-600">
+                      You now have access to {planDetails.tests === 100 ? "unlimited" : planDetails.tests} practice tests for {planDetails.days} days!
+                    </span>
+                  )}
+                  {!planDetails.tests && (
+                    <span>You can now access all our premium features and practice tests.</span>
+                  )}
                 </>
               ) : (
                 <>
@@ -257,8 +281,15 @@ function ThankYouContent() {
                       <span className="text-red-600 font-bold text-sm">1</span>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800">Unlimited Access</h4>
-                      <p className="text-gray-600 text-sm">Take as many practice tests as you need</p>
+                      <h4 className="font-semibold text-gray-800">
+                        {planDetails.tests === 100 ? "Unlimited" : `${planDetails.tests}`} Practice Tests
+                      </h4>
+                      <p className="text-gray-600 text-sm">
+                        {planDetails.tests === 100 
+                          ? "Take as many practice tests as you need"
+                          : `${planDetails.tests} full practice tests for ${planDetails.days} days`
+                        }
+                      </p>
                     </div>
                   </div>
                   

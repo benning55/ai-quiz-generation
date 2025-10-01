@@ -316,3 +316,52 @@ def finish_quiz(db: Session, quiz_attempt_id: int, total_time: Optional[int] = N
 def get_user_stats(db: Session, user_id: int) -> Dict:
     """Get user statistics for account page"""
     return ProgressService.get_user_statistics(db, user_id)
+
+def get_completed_quiz_count(db: Session, user_id: int, since_date: Optional[datetime] = None) -> int:
+    """
+    Get count of completed quizzes for a user, optionally since a specific date.
+    This is used to enforce test limits for 7-day plan users.
+    """
+    query = db.query(db_models.QuizAttempt).filter(
+        db_models.QuizAttempt.user_id == user_id,
+        db_models.QuizAttempt.is_completed == True
+    )
+    
+    if since_date:
+        query = query.filter(db_models.QuizAttempt.completed_at >= since_date)
+    
+    return query.count()
+
+def can_user_start_quiz(db: Session, user_id: int, user_tier: str, payment_created_at: Optional[datetime] = None) -> tuple[bool, str, int, int]:
+    """
+    Check if user can start a new quiz based on their tier and completed quiz count.
+    
+    Returns:
+        - can_start: bool - Whether user can start a quiz
+        - message: str - Message to display
+        - completed: int - Number of quizzes completed
+        - limit: int - Quiz limit for this tier (0 = unlimited)
+    """
+    # Define limits per tier
+    tier_limits = {
+        "7days": 20,      # 7-day plan: 20 tests for 7 days
+        "1month": 0,      # 1-month plan: unlimited tests for 30 days (0 = no limit)
+        "free": 0         # Free users use different gate (freeTestGate with 3 tests)
+    }
+    
+    limit = tier_limits.get(user_tier, 0)
+    
+    # If unlimited (limit = 0), always allow
+    if limit == 0:
+        return True, "unlimited", 0, 0
+    
+    # Count completed quizzes since payment started
+    since_date = payment_created_at if payment_created_at else None
+    completed_count = get_completed_quiz_count(db, user_id, since_date)
+    
+    # Check if under limit
+    if completed_count < limit:
+        remaining = limit - completed_count
+        return True, f"{remaining} tests remaining", completed_count, limit
+    else:
+        return False, f"Test limit reached ({limit} tests)", completed_count, limit

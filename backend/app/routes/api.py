@@ -122,6 +122,55 @@ async def get_user_stats(current_user: db_models.User = Depends(service.get_curr
         }
 
 # Progress Tracking Endpoints
+@router.get("/quiz/can-start")
+async def check_quiz_limits(
+    current_user: db_models.User = Depends(service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Check if user can start a new quiz based on their tier and test limits"""
+    try:
+        from ..services.progress_service import can_user_start_quiz
+        
+        # Get user's active payment to determine tier
+        active_payment = service.get_user_active_payment(db, current_user.id)
+        
+        if not active_payment:
+            # Free user - no tier-based limits (uses freeTestGate instead)
+            return {
+                "can_start": True,
+                "tier": "free",
+                "message": "Free access",
+                "completed_tests": 0,
+                "test_limit": 0,
+                "remaining_tests": 0
+            }
+        
+        # Check limits based on tier
+        can_start, message, completed, limit = can_user_start_quiz(
+            db, 
+            current_user.id, 
+            active_payment.tier,
+            active_payment.created_at
+        )
+        
+        return {
+            "can_start": can_start,
+            "tier": active_payment.tier,
+            "message": message,
+            "completed_tests": completed,
+            "test_limit": limit,
+            "remaining_tests": max(0, limit - completed) if limit > 0 else 0
+        }
+    except Exception as e:
+        return {
+            "can_start": True,
+            "tier": "unknown",
+            "message": f"Error checking limits: {str(e)}",
+            "completed_tests": 0,
+            "test_limit": 0,
+            "remaining_tests": 0
+        }
+
 @router.post("/quiz/start")
 async def start_quiz_tracking(
     quiz_type: str = "practice",
@@ -129,10 +178,44 @@ async def start_quiz_tracking(
     current_user: db_models.User = Depends(service.get_current_user), 
     db: Session = Depends(get_db)
 ):
-    """Start a new quiz attempt for progress tracking"""
+    """Start a new quiz attempt for progress tracking with limit checking"""
     try:
-        from ..services.progress_service import start_quiz
+        from ..services.progress_service import start_quiz, can_user_start_quiz
+        
+        # Get user's active payment to check tier limits
+        active_payment = service.get_user_active_payment(db, current_user.id)
+        
+        if active_payment:
+            # Check if user can start a quiz based on tier limits
+            can_start, message, completed, limit = can_user_start_quiz(
+                db,
+                current_user.id,
+                active_payment.tier,
+                active_payment.created_at
+            )
+            
+            if not can_start:
+                return {
+                    "quiz_attempt_id": None,
+                    "message": message,
+                    "limit_reached": True,
+                    "completed_tests": completed,
+                    "test_limit": limit
+                }
+        
+        # User can start quiz
         attempt_id = start_quiz(db, current_user.id, quiz_type, chapter_id)
+        
+        # Return with limit info if applicable
+        if active_payment and limit > 0:
+            return {
+                "quiz_attempt_id": attempt_id,
+                "message": message,
+                "limit_reached": False,
+                "completed_tests": completed + 1,  # +1 because we just started one
+                "test_limit": limit
+            }
+        
         return {"quiz_attempt_id": attempt_id, "message": "Quiz started successfully"}
     except Exception as e:
         return {"quiz_attempt_id": None, "message": f"Failed to start quiz tracking: {str(e)}"}

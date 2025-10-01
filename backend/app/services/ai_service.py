@@ -156,15 +156,45 @@ REQUIREMENTS:
 4. Ensure questions are factual and test comprehension
 5. Provide clear, unambiguous answers
 
+CRITICAL FORMATTING RULES:
+❌ NEVER include letter prefixes (A), B), C), D)) in the option text
+❌ NEVER include numbers (1., 2., 3., 4.) in the option text
+✅ ALWAYS provide only the plain text of each option
+✅ The UI will automatically add the A/B/C/D labels
+
+CORRECT EXAMPLE:
+{{
+  "question": "What is the capital of Canada?",
+  "type": "multiple_choice",
+  "options": [
+    "Ottawa",
+    "Toronto", 
+    "Montreal",
+    "Vancouver"
+  ],
+  "answer": "Ottawa"
+}}
+
+WRONG EXAMPLE (DO NOT DO THIS):
+{{
+  "question": "What is the capital of Canada?",
+  "options": [
+    "A) Ottawa",           ❌ Wrong - has letter prefix
+    "B) Toronto",          ❌ Wrong - has letter prefix
+    "C) Montreal",         ❌ Wrong - has letter prefix
+    "D) Vancouver"         ❌ Wrong - has letter prefix
+  ]
+}}
+
 OUTPUT FORMAT (STRICT JSON):
 {{
   "summary": "Brief 2-3 sentence summary of the content",
   "quiz": [
     {{
-      "question": "Clear, specific question text",
+      "question": "Clear, specific question text (no prefixes)",
       "type": "multiple_choice|true_false|short_answer",
-      "options": ["A", "B", "C", "D"] (for multiple_choice only),
-      "answer": "Correct answer",
+      "options": ["Plain text option 1", "Plain text option 2", "Plain text option 3", "Plain text option 4"],
+      "answer": "Plain text of the correct answer (must exactly match one option)",
       "explanation": "Brief explanation of why this is correct"
     }}
   ]
@@ -203,7 +233,7 @@ Generate exactly {request.question_count} questions. Respond with ONLY the JSON,
         if "quiz" not in result or not isinstance(result["quiz"], list):
             raise ValueError("Invalid quiz format in AI response")
         
-        # Validate each question
+        # Validate and clean each question
         for i, question in enumerate(result["quiz"]):
             if not isinstance(question, dict):
                 raise ValueError(f"Question {i} is not a valid object")
@@ -212,8 +242,27 @@ Generate exactly {request.question_count} questions. Respond with ONLY the JSON,
             for field in required_fields:
                 if field not in question:
                     raise ValueError(f"Question {i} missing required field: {field}")
+            
+            # Clean up options if they have letter/number prefixes
+            if "options" in question and isinstance(question["options"], list):
+                question["options"] = [self._clean_option_text(opt) for opt in question["options"]]
+            
+            # Also clean the answer if it has a prefix
+            if "answer" in question:
+                question["answer"] = self._clean_option_text(question["answer"])
         
         return result
+    
+    def _clean_option_text(self, text: str) -> str:
+        """Remove letter/number prefixes from option text"""
+        if not isinstance(text, str):
+            return text
+        
+        # Remove patterns like "A)", "B)", "1.", "2)", etc. from the start
+        cleaned = re.sub(r'^[A-Da-d][\)\.]\s*', '', text.strip())
+        cleaned = re.sub(r'^[1-4][\)\.]\s*', '', cleaned.strip())
+        
+        return cleaned.strip()
     
     def _fix_json_issues(self, json_text: str) -> str:
         """Attempt to fix common JSON formatting issues"""
