@@ -1263,7 +1263,7 @@ export default function QuizPage() {
                       {quizLimits.remainingTests <= 5 && quizLimits.remainingTests > 0 && (
                         <p className='text-xs text-orange-600 mt-2 font-medium'>⚠️ Running low on tests! Consider upgrading to unlimited.</p>
                       )}
-                      {quizLimits.remainingTests === 0 && (
+                      {!quizLimits.canStart && (
                         <div className='mt-3 p-3 bg-red-100 rounded-lg'>
                           <p className='text-sm text-red-700 font-semibold'>❌ Test limit reached!</p>
                           <p className='text-xs text-red-600 mt-1'>Upgrade to 1-month plan for unlimited tests.</p>
@@ -1298,14 +1298,14 @@ export default function QuizPage() {
                       onClick={() => startQuizWithGate('paid', null)}
                       size='lg'
                       className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full disabled:opacity-50 disabled:cursor-not-allowed'
-                      disabled={isLoading || (quizLimits?.remainingTests === 0)}
+                      disabled={isLoading || (quizLimits ? !quizLimits.canStart : false)}
                     >
                       {isLoading ? (
                         <div className='flex items-center gap-2'>
                           <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
                           <span>Generating Quiz...</span>
                         </div>
-                      ) : quizLimits?.remainingTests === 0 ? (
+                      ) : (quizLimits && !quizLimits.canStart) ? (
                         "Test Limit Reached"
                       ) : (
                         "Start Full Mixed Test (20 Questions)"
@@ -1323,7 +1323,7 @@ export default function QuizPage() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => startQuizWithGate('paid', chapter.id)}
-                          disabled={isLoading || (quizLimits?.remainingTests === 0)}
+                          disabled={isLoading || (quizLimits ? !quizLimits.canStart : false)}
                           className='p-4 md:p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50 disabled:cursor-not-allowed'
                         >
                           <div className='flex items-start gap-3'>

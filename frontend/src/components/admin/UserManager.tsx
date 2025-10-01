@@ -98,6 +98,7 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
   const handleSave = async (userId: number) => {
     setIsSaving(true)
     try {
+      console.log('Sending update request:', editForm)
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost'}/api/users/${userId}`,
         {
@@ -109,12 +110,14 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
 
       if (response.ok) {
         const updatedUser = await response.json()
+        console.log('Received updated user:', updatedUser)
         setUsers(users.map(u => u.id === userId ? updatedUser : u))
         setEditingUserId(null)
         setEditForm({})
         if (onStatsUpdate) onStatsUpdate()
       } else {
-        console.error('Failed to update user:', response.status)
+        const errorText = await response.text()
+        console.error('Failed to update user:', response.status, errorText)
         alert('Failed to update user. Please try again.')
       }
     } catch (error) {

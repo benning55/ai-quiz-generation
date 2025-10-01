@@ -337,6 +337,9 @@ def update_user_endpoint(
     """Update user payment status and tier (admin only - creates/updates Payment record)"""
     from datetime import datetime
     
+    print(f"\n=== UPDATE USER {user_id} ===")
+    print(f"Received update_data: {update_data}")
+    
     user = db.query(db_models.User).filter(db_models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -345,6 +348,8 @@ def update_user_endpoint(
     has_active_payment = update_data.get('has_active_payment', False)
     member_tier = update_data.get('member_tier', 'free')
     expires_at = update_data.get('expires_at')
+    
+    print(f"Parsed: has_active_payment={has_active_payment}, member_tier='{member_tier}', expires_at={expires_at}")
     
     # Parse expires_at if it's a string
     if expires_at and isinstance(expires_at, str):
@@ -363,11 +368,13 @@ def update_user_endpoint(
         
         if existing_payment:
             # Update existing payment
+            print(f"Updating existing payment ID {existing_payment.id}: OLD tier={existing_payment.tier}, NEW tier={member_tier}")
             existing_payment.tier = member_tier
             existing_payment.expires_at = expires_at
             existing_payment.status = 'succeeded'
         else:
             # Create new payment record (admin manual entry)
+            print(f"Creating NEW payment: tier={member_tier}, expires_at={expires_at}")
             new_payment = db_models.Payment(
                 user_id=user_id,
                 stripe_payment_intent_id=f"admin_manual_{user_id}_{int(datetime.utcnow().timestamp())}",
@@ -392,7 +399,11 @@ def update_user_endpoint(
     
     # Return user data in the same format as GET /users/
     active_payment = service.get_user_active_payment(db, user_id)
-    return {
+    print(f"After commit - Active payment: {active_payment}")
+    if active_payment:
+        print(f"Active payment: ID={active_payment.id}, tier={active_payment.tier}, expires_at={active_payment.expires_at}")
+    
+    response_data = {
         "id": user.id,
         "clerk_user_id": user.clerk_id,
         "email": user.email,
@@ -405,6 +416,9 @@ def update_user_endpoint(
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "updated_at": user.updated_at.isoformat() if user.updated_at else None,
     }
+    print(f"Returning response_data: {response_data}")
+    print(f"=== END UPDATE USER {user_id} ===\n")
+    return response_data
 
 #
 # Payment Endpoints
