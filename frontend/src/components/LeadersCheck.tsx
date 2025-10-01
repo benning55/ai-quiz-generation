@@ -140,7 +140,7 @@ export default function LeadersCheck({ onComplete, onSkip }: LeadersCheckProps) 
               <h1 className="text-3xl font-bold text-gray-800">Canadian Leaders Check</h1>
             </div>
             <p className="text-gray-600 text-lg mb-2">Great job on the federal questions! ✅</p>
-            <p className="text-gray-700 font-medium">Now, let's test your knowledge of your local leader</p>
+            <p className="text-gray-700 font-medium">Now, let&apos;s test your knowledge of your local leader</p>
           </motion.div>
 
           <Card className="shadow-xl border-2 border-red-100">

@@ -376,13 +376,10 @@ def create_stripe_checkout_session(user: db_models.User, db: Session, tier: str 
     if get_user_active_payment(db, user.id):
         raise HTTPException(status_code=400, detail="User already has an active subscription.")
 
-
-    print("*****")
-
     # Define pricing tiers
     pricing_tiers = {
         "7days": {
-            "amount": 100,  # $29.00 CAD in cents
+            "amount": 2900,  # $29.00 CAD in cents
             "currency": "cad",
             "name": "7-Day Premium Access",
             "duration_days": 7
