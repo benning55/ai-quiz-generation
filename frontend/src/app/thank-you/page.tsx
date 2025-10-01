@@ -186,10 +186,10 @@ function ThankYouContent() {
                   Your payment was cancelled. No charges have been made to your account. 
                   If you&apos;re really interested but have second thoughts, please contact{" "}
                   <a 
-                    href="mailto:liliantsang1414@gmail.com" 
+                    href="mailto:cancitizenshiptest@gmail.com" 
                     className="text-red-600 hover:text-red-700 underline font-semibold"
                   >
-                    liliantsang1414@gmail.com
+                    cancitizenshiptest@gmail.com
                   </a>
                   {" "}for a 30% discount on our 7-day or 30-day plans!
                 </>
@@ -341,7 +341,7 @@ function ThankYouContent() {
                       whileTap={{ scale: 0.95 }}
                     >
                       <a 
-                        href="mailto:liliantsang1414@gmail.com?subject=30% Discount Request - Canadian Citizenship Test&body=Hi, I was interested in the premium plan but cancelled my payment. Could you please provide me with the 30% discount for the 7-day or 30-day plan mentioned on your website?"
+                        href="mailto:cancitizenshiptest@gmail.com?subject=30% Discount Request - Canadian Citizenship Test&body=Hi, I was interested in the premium plan but cancelled my payment. Could you please provide me with the 30% discount for the 7-day or 30-day plan mentioned on your website?"
                         className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
                       >
                         📧 Contact for 30% Discount
@@ -349,7 +349,7 @@ function ThankYouContent() {
                     </motion.div>
                   </div>
                   <p className="text-sm text-gray-600">
-                    Email: <span className="font-semibold">liliantsang1414@gmail.com</span>
+                    Email: <span className="font-semibold">cancitizenshiptest@gmail.com</span>
                   </p>
                 </div>
               </motion.div>
@@ -363,10 +363,10 @@ function ThankYouContent() {
               <p className="text-gray-500 text-sm">
                 Need help? Contact our support team at{" "}
                 <a 
-                  href="mailto:support@cancitizentest.com" 
+                  href="mailto:cancitizenshiptest@gmail.com" 
                   className="text-red-600 hover:text-red-700 underline"
                 >
-                  support@cancitizentest.com
+                  cancitizenshiptest@gmail.com
                 </a>
               </p>
             </motion.div>
