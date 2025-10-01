@@ -16,6 +16,7 @@ import { PaymentButton } from '@/components/PaymentButton'
 import { API_ENDPOINTS } from '@/config/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { canStartFreeTest, incrementFreeTestsUsed, remainingFreeTests, FREE_TEST_LIMIT } from '@/lib/freeTestGate'
+import LeadersCheck from '@/components/LeadersCheck'
 
 type QuizQuestion = {
   question: string;
@@ -62,6 +63,14 @@ export default function QuizPage() {
     testLimit: number;
     remainingTests: number;
     message: string;
+  } | null>(null);
+  
+  // Leaders Check state
+  const [showLeadersCheck, setShowLeadersCheck] = useState(false);
+  const [leadersCheckComplete, setLeadersCheckComplete] = useState(false);
+  const [pendingQuizStart, setPendingQuizStart] = useState<{
+    mode: 'guest' | 'free' | 'paid';
+    chapterId: number | null;
   } | null>(null);
   
   // Confetti effect for correct answers
@@ -250,6 +259,18 @@ export default function QuizPage() {
 
   const startQuizWithGate = async (mode: 'guest' | 'free' | 'paid', chapterId?: number | null) => {
     setIsLoading(true);
+    
+    // Check if Leaders Check is needed (for full exam or chapter 5, paid users only)
+    const needsLeadersCheck = mode === 'paid' && (chapterId === null || chapterId === 5);
+    
+    if (needsLeadersCheck && !leadersCheckComplete) {
+      // Store pending quiz start and show Leaders Check
+      setPendingQuizStart({ mode, chapterId: chapterId || null });
+      setShowLeadersCheck(true);
+      setIsLoading(false);
+      return;
+    }
+    
     if (mode !== 'paid') {
       if (!canStartFreeTest()) {
         setIsLoading(false);
@@ -1075,6 +1096,30 @@ export default function QuizPage() {
       </motion.div>
     );
   };
+
+  // Show Leaders Check if needed
+  if (showLeadersCheck) {
+    return (
+      <LeadersCheck
+        onComplete={() => {
+          setLeadersCheckComplete(true);
+          setShowLeadersCheck(false);
+          // Now start the actual quiz with the pending parameters
+          if (pendingQuizStart) {
+            startQuizWithGate(pendingQuizStart.mode, pendingQuizStart.chapterId);
+          }
+        }}
+        onSkip={() => {
+          setShowLeadersCheck(false);
+          setLeadersCheckComplete(true);
+          // Skip and start quiz anyway
+          if (pendingQuizStart) {
+            startQuizWithGate(pendingQuizStart.mode, pendingQuizStart.chapterId);
+          }
+        }}
+      />
+    );
+  }
 
   if (!hasStarted) {
     return (

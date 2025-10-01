@@ -266,6 +266,24 @@ async def complete_quiz_tracking(
         return {"message": f"Failed to complete quiz: {str(e)}"}
 
 #
+# Canadian Leaders Knowledge Check Endpoint
+#
+@router.get("/leaders-check")
+@router.get("/leaders-check/")
+async def get_leaders_check(province_code: Optional[str] = None):
+    """Get Canadian leaders knowledge check (federal + optional provincial)"""
+    from ..services.leaders_quiz_service import leaders_quiz
+    return leaders_quiz.get_complete_leaders_check(province_code)
+
+@router.get("/leaders-check/provinces")
+async def get_provinces_list():
+    """Get list of provinces and territories for selection"""
+    from ..services.leaders_quiz_service import leaders_quiz
+    return {
+        "provinces_territories": leaders_quiz.get_provinces_territories_list()
+    }
+
+#
 # Quiz Generation Endpoint
 #
 @router.post("/generate-quiz-from-flashcards")
