@@ -154,190 +154,206 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold flex items-center">
-          <UserCheck className="w-6 h-6 mr-2 text-red-600" />
+    <div className='bg-white rounded-lg shadow-sm border p-6'>
+      <div className='flex items-center justify-between mb-6'>
+        <h2 className='text-2xl font-bold flex items-center'>
+          <UserCheck className='w-6 h-6 mr-2 text-red-600' />
           User Management
         </h2>
-        <Button
-          onClick={fetchUsers}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={fetchUsers} variant='outline' size='sm'>
           Refresh
         </Button>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <div className='flex flex-col md:flex-row gap-4 mb-6'>
+        <div className='relative flex-1'>
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
           <Input
-            type="text"
-            placeholder="Search by email, name, or Clerk ID..."
+            type='text'
+            placeholder='Search by email, name, or Clerk ID...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className='pl-10'
           />
         </div>
-        
+
         <select
           value={filterTier}
           onChange={(e) => setFilterTier(e.target.value as any)}
-          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600"
+          className='px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600'
         >
-          <option value="all">All Users</option>
-          <option value="paid">Paid Users Only</option>
-          <option value="free">Free Users Only</option>
+          <option value='all'>All Users</option>
+          <option value='paid'>Paid Users Only</option>
+          <option value='free'>Free Users Only</option>
         </select>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Total Users</p>
-          <p className="text-2xl font-bold text-blue-600">{users.length}</p>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+        <div className='bg-blue-50 p-4 rounded-lg'>
+          <p className='text-sm text-gray-600'>Total Users</p>
+          <p className='text-2xl font-bold text-blue-600'>{users.length}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Paid Users</p>
-          <p className="text-2xl font-bold text-green-600">
-            {users.filter(u => u.has_active_payment).length}
+        <div className='bg-green-50 p-4 rounded-lg'>
+          <p className='text-sm text-gray-600'>Paid Users</p>
+          <p className='text-2xl font-bold text-green-600'>
+            {users.filter((u) => u.has_active_payment).length}
           </p>
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Free Users</p>
-          <p className="text-2xl font-bold text-gray-600">
-            {users.filter(u => !u.has_active_payment).length}
+        <div className='bg-gray-50 p-4 rounded-lg'>
+          <p className='text-sm text-gray-600'>Free Users</p>
+          <p className='text-2xl font-bold text-gray-600'>
+            {users.filter((u) => !u.has_active_payment).length}
           </p>
         </div>
       </div>
 
       {/* User Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className='overflow-x-auto'>
+        <table className='w-full'>
           <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <tr className='bg-gray-50 border-b'>
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 User Info
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 Status
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 Tier
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 Expires At
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 Joined
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className='bg-white divide-y divide-gray-200'>
             {currentUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className='px-4 py-8 text-center text-gray-500'>
                   No users found. Try adjusting your search or filters.
                 </td>
               </tr>
             ) : (
               currentUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.id} className='hover:bg-gray-50'>
                   {/* User Info */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-start">
-                      <Mail className="w-4 h-4 text-gray-400 mr-2 mt-1 flex-shrink-0" />
+                  <td className='px-4 py-4'>
+                    <div className='flex items-start'>
+                      <Mail className='w-4 h-4 text-gray-400 mr-2 mt-1 flex-shrink-0' />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {user.full_name || 'Unknown'}
+                        <p className='text-sm font-medium text-gray-900'>
+                          {user.full_name || "Unknown"}
                         </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                        <p className="text-xs text-gray-400 font-mono">{user.clerk_user_id}</p>
+                        <p className='text-xs text-gray-500'>{user.email}</p>
+                        <p className='text-xs text-gray-400 font-mono'>
+                          {user.clerk_user_id}
+                        </p>
                       </div>
                     </div>
                   </td>
 
                   {/* Status */}
-                  <td className="px-4 py-4">
+                  <td className='px-4 py-4'>
                     {editingUserId === user.id ? (
                       <select
-                        value={editForm.has_active_payment ? 'true' : 'false'}
-                        onChange={(e) => setEditForm({
-                          ...editForm,
-                          has_active_payment: e.target.value === 'true'
-                        })}
-                        className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        value={editForm.has_active_payment ? "true" : "false"}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            has_active_payment: e.target.value === "true",
+                          })
+                        }
+                        className='px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-600'
                       >
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
+                        <option value='true'>Active</option>
+                        <option value='false'>Inactive</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.has_active_payment
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.has_active_payment
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {user.has_active_payment ? (
                           <>
-                            <Crown className="w-3 h-3 mr-1" />
+                            <Crown className='w-3 h-3 mr-1' />
                             Active
                           </>
                         ) : (
-                          'Inactive'
+                          "Inactive"
                         )}
                       </span>
                     )}
                   </td>
 
                   {/* Tier */}
-                  <td className="px-4 py-4">
+                  <td className='px-4 py-4'>
                     {editingUserId === user.id ? (
                       <select
-                        value={editForm.member_tier || user.member_tier || 'free'}
-                        onChange={(e) => setEditForm({
-                          ...editForm,
-                          member_tier: e.target.value
-                        })}
-                        className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        value={
+                          editForm.member_tier || user.member_tier || "free"
+                        }
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            member_tier: e.target.value,
+                          })
+                        }
+                        className='px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-600'
                       >
-                        <option value="free">Free</option>
-                        <option value="7_day_trial">7-Day Trial</option>
-                        <option value="7_days">7 Days</option>
-                        <option value="30_days">30 Days</option>
-                        <option value="premium">Premium</option>
+                        <option value='free'>Free</option>
+                        <option value='7days'>7 Days</option>
+                        <option value='1month'>1 Month</option>
                       </select>
                     ) : (
-                      <span className="text-sm text-gray-900 capitalize">
-                        {(user.member_tier || 'free').replace('_', ' ')}
+                      <span className='text-sm text-gray-900 capitalize'>
+                        {(user.member_tier || "free").replace("_", " ")}
                       </span>
                     )}
                   </td>
 
                   {/* Expires At */}
-                  <td className="px-4 py-4">
+                  <td className='px-4 py-4'>
                     {editingUserId === user.id ? (
                       <Input
-                        type="datetime-local"
-                        value={editForm.expires_at ? new Date(editForm.expires_at).toISOString().slice(0, 16) : ''}
-                        onChange={(e) => setEditForm({
-                          ...editForm,
-                          expires_at: e.target.value ? new Date(e.target.value).toISOString() : null
-                        })}
-                        className="text-sm"
+                        type='datetime-local'
+                        value={
+                          editForm.expires_at
+                            ? new Date(editForm.expires_at)
+                                .toISOString()
+                                .slice(0, 16)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            expires_at: e.target.value
+                              ? new Date(e.target.value).toISOString()
+                              : null,
+                          })
+                        }
+                        className='text-sm'
                       />
                     ) : (
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                      <div className='flex items-center'>
+                        <Calendar className='w-4 h-4 text-gray-400 mr-2' />
                         <div>
-                          <p className="text-sm text-gray-900">{formatDate(user.expires_at)}</p>
+                          <p className='text-sm text-gray-900'>
+                            {formatDate(user.expires_at)}
+                          </p>
                           {user.expires_at && isExpired(user.expires_at) && (
-                            <p className="text-xs text-red-600 flex items-center mt-1">
-                              <AlertCircle className="w-3 h-3 mr-1" />
+                            <p className='text-xs text-red-600 flex items-center mt-1'>
+                              <AlertCircle className='w-3 h-3 mr-1' />
                               Expired
                             </p>
                           )}
@@ -347,30 +363,30 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
                   </td>
 
                   {/* Joined */}
-                  <td className="px-4 py-4">
-                    <span className="text-sm text-gray-500">
+                  <td className='px-4 py-4'>
+                    <span className='text-sm text-gray-500'>
                       {formatDate(user.created_at)}
                     </span>
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-4">
+                  <td className='px-4 py-4'>
                     {editingUserId === user.id ? (
-                      <div className="flex space-x-2">
+                      <div className='flex space-x-2'>
                         <Button
                           onClick={() => handleSave(user.id)}
                           disabled={isSaving}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
+                          size='sm'
+                          className='bg-green-600 hover:bg-green-700'
                         >
                           {isSaving ? (
                             <>
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                              <div className='animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2'></div>
                               Saving...
                             </>
                           ) : (
                             <>
-                              <Save className="w-3 h-3 mr-1" />
+                              <Save className='w-3 h-3 mr-1' />
                               Save
                             </>
                           )}
@@ -378,20 +394,20 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
                         <Button
                           onClick={handleCancelEdit}
                           disabled={isSaving}
-                          size="sm"
-                          variant="outline"
+                          size='sm'
+                          variant='outline'
                         >
-                          <X className="w-3 h-3 mr-1" />
+                          <X className='w-3 h-3 mr-1' />
                           Cancel
                         </Button>
                       </div>
                     ) : (
                       <Button
                         onClick={() => handleEdit(user)}
-                        size="sm"
-                        variant="outline"
+                        size='sm'
+                        variant='outline'
                       >
-                        <Edit2 className="w-3 h-3 mr-1" />
+                        <Edit2 className='w-3 h-3 mr-1' />
                         Edit
                       </Button>
                     )}
@@ -405,27 +421,29 @@ export default function UserManager({ onStatsUpdate }: UserManagerProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+        <div className='flex items-center justify-between mt-6'>
+          <p className='text-sm text-gray-600'>
+            Showing {startIndex + 1} to{" "}
+            {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length}{" "}
+            users
           </p>
-          <div className="flex space-x-2">
+          <div className='flex space-x-2'>
             <Button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              size="sm"
-              variant="outline"
+              size='sm'
+              variant='outline'
             >
               Previous
             </Button>
-            <span className="px-4 py-2 text-sm text-gray-700">
+            <span className='px-4 py-2 text-sm text-gray-700'>
               Page {currentPage} of {totalPages}
             </span>
             <Button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              size="sm"
-              variant="outline"
+              size='sm'
+              variant='outline'
             >
               Next
             </Button>
