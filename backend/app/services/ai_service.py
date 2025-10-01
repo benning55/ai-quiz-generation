@@ -3,6 +3,7 @@ Enhanced AI Service with better error handling, retry logic, and consistency
 """
 import asyncio
 import json
+import random
 import re
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass
@@ -250,6 +251,11 @@ Generate exactly {request.question_count} questions. Respond with ONLY the JSON,
             # Also clean the answer if it has a prefix
             if "answer" in question:
                 question["answer"] = self._clean_option_text(question["answer"])
+            
+            # CRITICAL: Shuffle options for multiple choice to prevent pattern recognition
+            # The AI often puts the correct answer first, so we need to randomize
+            if question["type"] == "multiple_choice" and "options" in question:
+                question["options"] = self._shuffle_options(question["options"])
         
         return result
     
@@ -263,6 +269,15 @@ Generate exactly {request.question_count} questions. Respond with ONLY the JSON,
         cleaned = re.sub(r'^[1-4][\)\.]\s*', '', cleaned.strip())
         
         return cleaned.strip()
+    
+    def _shuffle_options(self, options: List[str]) -> List[str]:
+        """
+        Shuffle multiple choice options to prevent pattern recognition.
+        The AI often puts the correct answer first, so we randomize the order.
+        """
+        shuffled = options.copy()  # Don't modify the original
+        random.shuffle(shuffled)
+        return shuffled
     
     def _fix_json_issues(self, json_text: str) -> str:
         """Attempt to fix common JSON formatting issues"""
