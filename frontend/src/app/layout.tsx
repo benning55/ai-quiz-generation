@@ -23,11 +23,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icons/icon-512x512.svg", sizes: "512x512", type: "image/svg+xml" },
     ],
     apple: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
     ],
   },
   other: {
@@ -53,9 +53,9 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-title" content="CanCitizenTest" />
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="theme-color" content="#dc2626" />
-          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-          <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
-          <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+          <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+          <link rel="icon" type="image/svg+xml" sizes="192x192" href="/icons/icon-192x192.svg" />
+          <link rel="icon" type="image/svg+xml" sizes="512x512" href="/icons/icon-512x512.svg" />
         </head>
         <body className={inter.className}>
           <ClerkSync />

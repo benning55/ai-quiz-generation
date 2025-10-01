@@ -1,0 +1,16 @@
+# robots.txt for CanCitizenTest
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /account/
+Disallow: /sign-in/
+Disallow: /sign-up/
+Disallow: /demo/
+Disallow: /thank-you/
+
+# Sitemap
+Sitemap: https://cancitizentest.com/sitemap.xml
+
+# Crawl-delay to be respectful
+Crawl-delay: 1
