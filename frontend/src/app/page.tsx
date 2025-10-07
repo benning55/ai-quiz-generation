@@ -186,12 +186,39 @@ export default function Home() {
                   className="flex flex-wrap gap-4"
                 >
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.97 }}
+                    animate={{
+                      scale: [1.08, 0.97],
+                    }}
+                    transition={{
+                      boxShadow: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }
+                    }}
+                    className="relative"
                   >
                     <Link href="/quiz">
-                      <Button size="lg" className="bg-white text-red-700 hover:bg-yellow-50 hover:text-red-800 transition-all duration-300 shadow-lg">
-                        Start Practice Test
+                      <Button 
+                        size="lg" 
+                        className="relative bg-gradient-to-r from-white to-yellow-50 text-red-700 hover:from-yellow-50 hover:to-yellow-100 hover:text-red-800 transition-all duration-300 shadow-2xl font-bold text-lg px-8 py-6 rounded-xl border-2 border-yellow-300 hover:border-yellow-400 group"
+                      >
+                        <span className="relative flex items-center gap-2">
+                          Start Practice Test
+                        </span>
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"
+                          animate={{
+                            scale: [1, 1.05, 1],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        />
                       </Button>
                     </Link>
                   </motion.div>
