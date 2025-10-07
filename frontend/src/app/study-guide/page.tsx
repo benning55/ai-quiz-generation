@@ -99,7 +99,7 @@ export default function StudyGuide() {
                     <Button 
                       size="lg" 
                       variant="outline" 
-                      className="border-2 border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300"
+                      className="bg-red-700 border-2 border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300 "
                     >
                       Create Free Account
                     </Button>
@@ -272,7 +272,7 @@ export default function StudyGuide() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="border-2 border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300"
+                    className="bg-red-700 border-2 border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300"
                   >
                     Create Free Account
                   </Button>
