@@ -206,7 +206,7 @@ export default function Home() {
                         className="relative bg-gradient-to-r from-white to-yellow-50 text-red-700 hover:from-yellow-50 hover:to-yellow-100 hover:text-red-800 transition-all duration-300 shadow-2xl font-bold text-lg px-8 py-6 rounded-xl border-2 border-yellow-300 hover:border-yellow-400 group"
                       >
                         <span className="relative flex items-center gap-2">
-                          Start Practice Test
+                          Start Testing
                         </span>
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"
