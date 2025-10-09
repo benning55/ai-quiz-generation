@@ -1174,11 +1174,11 @@ export default function QuizPage() {
                     You can try 3 questions for free. Sign in to access all 5
                     questions and track your progress!
                   </p>
-                  <div className='space-y-4'>
+                  <div className='space-y-4 flex flex-col items-center'>
                     <Button
-                      onClick={() => startQuizWithGate('guest')}
+                      onClick={() => startQuizWithGate("guest")}
                       size='lg'
-                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full'
+                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg px-8'
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -1187,7 +1187,7 @@ export default function QuizPage() {
                           <span>Generating Quiz...</span>
                         </div>
                       ) : (
-                        `Start with a free test (${remainingFreeTests()} left)`
+                        `Start testing (${remainingFreeTests()} left)`
                       )}
                     </Button>
                     <Link href='/sign-up' className='block'>
@@ -1220,13 +1220,13 @@ export default function QuizPage() {
                     <Sparkles className='w-6 h-6' />
                     <span className='font-semibold'>Upgrade Available</span>
                   </div>
-                  <div className='space-y-4'>
+                  <div className='space-y-4 flex flex-col items-center'>
                     <PaymentButton />
                     <Button
-                      onClick={() => startQuizWithGate('free')}
+                      onClick={() => startQuizWithGate("free")}
                       size='lg'
                       variant='outline'
-                      className='w-full border-2 border-red-600 text-red-600 hover:bg-red-50'
+                      className='px-8 border-2 border-red-600 text-red-600 hover:bg-red-50'
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -1235,7 +1235,7 @@ export default function QuizPage() {
                           <span>Generating Quiz...</span>
                         </div>
                       ) : (
-                        `Start with a free test (${remainingFreeTests()} left)`
+                        `Start testing (${remainingFreeTests()} left)`
                       )}
                     </Button>
                   </div>
@@ -1244,95 +1244,138 @@ export default function QuizPage() {
                 <div className='bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6'>
                   <div className='flex items-center justify-center gap-3 text-green-600 mb-4'>
                     <Crown className='w-6 h-6' />
-                    <span className='font-semibold text-lg'>Premium Access</span>
+                    <span className='font-semibold text-lg'>
+                      Premium Access
+                    </span>
                   </div>
-                  
+
                   {/* Show remaining tests for 7-day plan */}
                   {quizLimits && quizLimits.testLimit > 0 && (
                     <div className='bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4'>
                       <div className='flex items-center justify-between'>
                         <div>
-                          <p className='font-semibold text-blue-800'>Tests Remaining</p>
-                          <p className='text-sm text-blue-600'>{quizLimits.tier === '7days' ? '7-Day Plan' : 'Trial Plan'}</p>
+                          <p className='font-semibold text-blue-800'>
+                            Tests Remaining
+                          </p>
+                          <p className='text-sm text-blue-600'>
+                            {quizLimits.tier === "7days"
+                              ? "7-Day Plan"
+                              : "Trial Plan"}
+                          </p>
                         </div>
                         <div className='text-right'>
-                          <p className='text-3xl font-bold text-blue-600'>{quizLimits.remainingTests}</p>
-                          <p className='text-sm text-gray-600'>of {quizLimits.testLimit}</p>
+                          <p className='text-3xl font-bold text-blue-600'>
+                            {quizLimits.remainingTests}
+                          </p>
+                          <p className='text-sm text-gray-600'>
+                            of {quizLimits.testLimit}
+                          </p>
                         </div>
                       </div>
-                      {quizLimits.remainingTests <= 5 && quizLimits.remainingTests > 0 && (
-                        <p className='text-xs text-orange-600 mt-2 font-medium'>⚠️ Running low on tests! Consider upgrading to unlimited.</p>
-                      )}
+                      {quizLimits.remainingTests <= 5 &&
+                        quizLimits.remainingTests > 0 && (
+                          <p className='text-xs text-orange-600 mt-2 font-medium'>
+                            ⚠️ Running low on tests! Consider upgrading to
+                            unlimited.
+                          </p>
+                        )}
                       {!quizLimits.canStart && (
                         <div className='mt-3 p-3 bg-red-100 rounded-lg'>
-                          <p className='text-sm text-red-700 font-semibold'>❌ Test limit reached!</p>
-                          <p className='text-xs text-red-600 mt-1'>Upgrade to 1-month plan for unlimited tests.</p>
+                          <p className='text-sm text-red-700 font-semibold'>
+                            ❌ Test limit reached!
+                          </p>
+                          <p className='text-xs text-red-600 mt-1'>
+                            Upgrade to 1-month plan for unlimited tests.
+                          </p>
                         </div>
                       )}
                     </div>
                   )}
-                  
+
                   {/* Show unlimited badge for 1-month/premium users */}
                   {quizLimits && quizLimits.testLimit === 0 && (
                     <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4'>
                       <div className='flex items-center justify-center gap-2'>
                         <Sparkles className='w-5 h-5 text-green-600' />
-                        <p className='font-semibold text-green-800'>Unlimited Tests</p>
+                        <p className='font-semibold text-green-800'>
+                          Unlimited Tests
+                        </p>
                       </div>
-                      <p className='text-sm text-green-600 text-center mt-1'>Take as many practice tests as you need!</p>
+                      <p className='text-sm text-green-600 text-center mt-1'>
+                        Take as many practice tests as you need!
+                      </p>
                     </div>
                   )}
-                  
+
                   <p className='text-gray-600 text-center mb-6'>
-                    Choose your quiz type - practice by chapter or take the full mixed test!
+                    Choose your quiz type - practice by chapter or take the full
+                    mixed test!
                   </p>
-                  
+
                   {/* Mixed Test Option */}
                   <div className='border-2 border-red-200 rounded-xl p-4 bg-red-50 mb-6'>
                     <div className='flex items-center gap-3 mb-3'>
                       <Sparkles className='w-5 h-5 text-red-600' />
-                      <h3 className='font-semibold text-red-800'>Full Mixed Test</h3>
+                      <h3 className='font-semibold text-red-800'>
+                        Full Mixed Test
+                      </h3>
                     </div>
-                    <p className='text-red-700 text-sm mb-4'>Complete 20-question test with questions from all chapters - just like the real exam!</p>
+                    <p className='text-red-700 text-sm mb-4'>
+                      Complete 20-question test with questions from all chapters
+                      - just like the real exam!
+                    </p>
                     <Button
-                      onClick={() => startQuizWithGate('paid', null)}
+                      onClick={() => startQuizWithGate("paid", null)}
                       size='lg'
-                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg w-full disabled:opacity-50 disabled:cursor-not-allowed'
-                      disabled={isLoading || (quizLimits ? !quizLimits.canStart : false)}
+                      className='bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg px-8 disabled:opacity-50 disabled:cursor-not-allowed'
+                      disabled={
+                        isLoading || (quizLimits ? !quizLimits.canStart : false)
+                      }
                     >
                       {isLoading ? (
                         <div className='flex items-center gap-2'>
                           <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
                           <span>Generating Quiz...</span>
                         </div>
-                      ) : (quizLimits && !quizLimits.canStart) ? (
+                      ) : quizLimits && !quizLimits.canStart ? (
                         "Test Limit Reached"
                       ) : (
-                        "Start Full Mixed Test (20 Questions)"
+                        "Start testing (20 Questions)"
                       )}
                     </Button>
                   </div>
 
                   {/* Chapter Selection */}
                   <div className='space-y-4'>
-                    <h3 className='font-semibold text-gray-800 text-center'>Or Practice by Chapter</h3>
+                    <h3 className='font-semibold text-gray-800 text-center'>
+                      Or Practice by Chapter
+                    </h3>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       {chapters.map((chapter, index) => (
                         <motion.button
                           key={chapter.id}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => startQuizWithGate('paid', chapter.id)}
-                          disabled={isLoading || (quizLimits ? !quizLimits.canStart : false)}
+                          onClick={() => startQuizWithGate("paid", chapter.id)}
+                          disabled={
+                            isLoading ||
+                            (quizLimits ? !quizLimits.canStart : false)
+                          }
                           className='p-4 md:p-5 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all duration-200 text-left group disabled:opacity-50 disabled:cursor-not-allowed'
                         >
                           <div className='flex items-start gap-3'>
                             <div className='w-9 h-9 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-red-200'>
-                              <span className='text-red-600 font-semibold text-sm md:text-base'>{chapter.order || index + 1}</span>
+                              <span className='text-red-600 font-semibold text-sm md:text-base'>
+                                {chapter.order || index + 1}
+                              </span>
                             </div>
                             <div className='flex-1 min-w-0'>
-                              <h4 className='font-semibold text-sm md:text-base text-gray-800 group-hover:text-red-700 mb-1 md:mb-2'>{chapter.title}</h4>
-                              <p className='text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3 md:line-clamp-none'>{chapter.description}</p>
+                              <h4 className='font-semibold text-sm md:text-base text-gray-800 group-hover:text-red-700 mb-1 md:mb-2'>
+                                {chapter.title}
+                              </h4>
+                              <p className='text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3 md:line-clamp-none'>
+                                {chapter.description}
+                              </p>
                             </div>
                           </div>
                         </motion.button>
@@ -1342,8 +1385,6 @@ export default function QuizPage() {
                 </div>
               )}
             </motion.div>
-
-
           </div>
         </main>
       </div>
