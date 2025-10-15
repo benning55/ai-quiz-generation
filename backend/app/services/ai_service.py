@@ -83,7 +83,7 @@ class AIQuizGenerator:
         for attempt in range(3):
             try:
                 completion = self.groq_client.chat.completions.create(
-                    model="deepseek-r1-distill-llama-70b",
+                    model="llama-3.3-70b-versatile",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.6,
                     max_completion_tokens=4096,
