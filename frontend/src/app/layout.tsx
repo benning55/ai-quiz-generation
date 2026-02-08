@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import Script from "next/script"
 import { ClerkProvider } from '@clerk/nextjs'
+import { ClarityInit } from "@/components/ClarityInit"
 import { ClerkSync } from "@/components/ClerkSync"
 import { AuthProvider } from "@/contexts/AuthContext"
 
@@ -68,6 +69,7 @@ export default function RootLayout({
           <link rel="icon" type="image/svg+xml" sizes="512x512" href="/icons/icon-512x512.svg" />
         </head>
         <body className={inter.className}>
+          <ClarityInit />
           <ClerkSync />
           <AuthProvider>
             {children}
