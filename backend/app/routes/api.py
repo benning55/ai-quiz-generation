@@ -372,6 +372,8 @@ def update_user_endpoint(
             existing_payment.tier = member_tier
             existing_payment.expires_at = expires_at
             existing_payment.status = 'succeeded'
+            # Reset start date so tier limits count from the admin refresh
+            existing_payment.created_at = datetime.utcnow()
         else:
             # Create new payment record (admin manual entry)
             print(f"Creating NEW payment: tier={member_tier}, expires_at={expires_at}")
