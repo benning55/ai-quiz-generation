@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.28.2",
     "@clerk/nextjs": "^6.16.0",
+    "@microsoft/clarity": "^1.0.2",
     "@radix-ui/react-dialog": "^1.1.10",
     "@radix-ui/react-progress": "^1.1.1",
     "@radix-ui/react-scroll-area": "^1.2.5",
