@@ -1,6 +1,7 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import Script from "next/script"
 import { ClerkProvider } from '@clerk/nextjs'
 import { ClerkSync } from "@/components/ClerkSync"
 import { AuthProvider } from "@/contexts/AuthContext"
@@ -47,6 +48,15 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <head>
+          <Script async src="https://www.googletagmanager.com/gtag/js?id=G-06TH2E48KL" />
+          <Script id="google-gtag">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-06TH2E48KL');
+            `}
+          </Script>
           <link rel="manifest" href="/manifest.json" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
