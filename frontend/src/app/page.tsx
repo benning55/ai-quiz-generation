@@ -508,7 +508,7 @@ export default function Home() {
           </div>
         </motion.section>
         
-        {/* Testimonials */}
+        {/* Benefits */}
         <motion.section 
           initial="hidden"
           whileInView="visible"
@@ -521,8 +521,15 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl font-bold text-center mb-16"
             >
-              Success Stories
+              Built to help you pass
             </motion.h2>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-center text-gray-600 max-w-2xl mx-auto -mt-10 mb-12"
+            >
+              Practice with realistic questions, learn from mistakes, and track improvement.
+            </motion.p>
             
             <div className="grid md:grid-cols-3 gap-8">
               <motion.div 
@@ -530,24 +537,10 @@ export default function Home() {
                 whileHover={{ y: -5 }}
                 className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
               >
-                <div className="flex items-center mb-6">
-                  <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-xl mr-4">
-                    JD
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">John Doe</h3>
-                    <p className="text-sm text-gray-500">New Canadian Citizen</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">&quot;This platform was instrumental in my preparation. The practice questions were very similar to the actual test. I passed on my first attempt!&quot;</p>
-                
-                <div className="mt-6 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
-                  ))}
-                </div>
+                <h3 className="font-semibold text-lg mb-3">Real test-style practice</h3>
+                <p className="text-gray-600">
+                  Timed quizzes that reflect the official test format.
+                </p>
               </motion.div>
               
               <motion.div 
@@ -555,24 +548,10 @@ export default function Home() {
                 whileHover={{ y: -5 }}
                 className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
               >
-                <div className="flex items-center mb-6">
-                  <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-xl mr-4">
-                    SM
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Sarah Miller</h3>
-                    <p className="text-sm text-gray-500">Permanent Resident</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">&quot;The AI quizzes adapted to my weak areas and helped me focus on what I needed to learn most. The interface is intuitive and makes studying enjoyable.&quot;</p>
-                
-                <div className="mt-6 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
-                  ))}
-                </div>
+                <h3 className="font-semibold text-lg mb-3">Know what to study next</h3>
+                <p className="text-gray-600">
+                  See your weak topics right after each test.
+                </p>
               </motion.div>
               
               <motion.div 
@@ -580,26 +559,35 @@ export default function Home() {
                 whileHover={{ y: -5 }}
                 className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
               >
-                <div className="flex items-center mb-6">
-                  <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-xl mr-4">
-                    RK
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Raj Kumar</h3>
-                    <p className="text-sm text-gray-500">New Canadian Citizen</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">&quot;I was nervous about the test, but after completing over 20 practice quizzes on this platform, I felt confident and well-prepared. Highly recommended!&quot;</p>
-                
-                <div className="mt-6 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
-                  ))}
-                </div>
+                <h3 className="font-semibold text-lg mb-3">Track your progress (free)</h3>
+                <p className="text-gray-600">
+                  Create an account to save scores and improve faster.
+                </p>
               </motion.div>
             </div>
+
+            <motion.div
+              variants={itemVariants}
+              className="mt-12 flex flex-col items-center gap-2"
+            >
+              <Link href="/sign-up">
+                <Button
+                  size="lg"
+                  className="bg-red-700 hover:bg-red-800 text-white px-10 py-6 rounded-md text-lg shadow-xl"
+                >
+                  Save results + track progress (free)
+                </Button>
+              </Link>
+              <div className="text-xs text-gray-500">
+                Takes ~10 seconds • No credit card
+              </div>
+              <Link
+                href="/quiz"
+                className="text-sm text-gray-600 hover:text-gray-900 underline"
+              >
+                Try a demo quiz
+              </Link>
+            </motion.div>
           </div>
         </motion.section>
       </main>
