@@ -33,7 +33,6 @@ function ThankYouContent() {
     } else if (tier === "1month") {
       tests = 100  // Unlimited (show as 100+) for 1-month plan
     }
-    
     setPlanDetails({ tier, days, tests })
   }, []);
 

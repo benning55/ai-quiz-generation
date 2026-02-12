@@ -509,111 +509,125 @@ export default function QuizPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="py-4 sm:py-8 max-w-4xl mx-auto px-2 sm:px-4"
+        className='py-4 sm:py-8 max-w-4xl mx-auto px-2 sm:px-4'
       >
-        <Card className="shadow-xl sm:shadow-2xl overflow-visible border-0 bg-gradient-to-br from-white via-red-50/30 to-yellow-50/30">
-          <div className="absolute right-0 top-0 w-32 h-32 sm:w-64 sm:h-64 bg-red-200 rounded-full -mt-16 sm:-mt-32 -mr-16 sm:-mr-32 opacity-10 blur-3xl" />
-          <div className="absolute left-0 bottom-0 w-32 h-32 sm:w-64 sm:h-64 bg-yellow-200 rounded-full -mb-16 sm:-mb-32 -ml-16 sm:-ml-32 opacity-10 blur-3xl" />
-          
-          <CardHeader className="text-center relative z-10 pt-6 sm:pt-10 pb-4 sm:pb-6 px-4 sm:px-6">
+        <Card className='shadow-xl sm:shadow-2xl overflow-visible border-0 bg-gradient-to-br from-white via-red-50/30 to-yellow-50/30'>
+          <div className='absolute right-0 top-0 w-32 h-32 sm:w-64 sm:h-64 bg-red-200 rounded-full -mt-16 sm:-mt-32 -mr-16 sm:-mr-32 opacity-10 blur-3xl' />
+          <div className='absolute left-0 bottom-0 w-32 h-32 sm:w-64 sm:h-64 bg-yellow-200 rounded-full -mb-16 sm:-mb-32 -ml-16 sm:-ml-32 opacity-10 blur-3xl' />
+
+          <CardHeader className='text-center relative z-10 pt-6 sm:pt-10 pb-4 sm:pb-6 px-4 sm:px-6'>
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 200, 
-                damping: 15, 
-                delay: 0.1 
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 15,
+                delay: 0.1,
               }}
-              className="mx-auto mb-4 sm:mb-6"
+              className='mx-auto mb-4 sm:mb-6'
             >
-              <div className="relative inline-block">
-                <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center ${
-                  isExcellent 
-                    ? "bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-lg shadow-yellow-500/50" 
-                    : isGood
-                      ? "bg-gradient-to-br from-blue-400 to-blue-500 shadow-lg shadow-blue-500/50"
-                      : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-lg shadow-gray-400/50"
-                }`}>
-                  <Trophy className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
+              <div className='relative inline-block'>
+                <div
+                  className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center ${
+                    isExcellent
+                      ? "bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-lg shadow-yellow-500/50"
+                      : isGood
+                        ? "bg-gradient-to-br from-blue-400 to-blue-500 shadow-lg shadow-blue-500/50"
+                        : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-lg shadow-gray-400/50"
+                  }`}
+                >
+                  <Trophy className='w-8 h-8 sm:w-12 sm:h-12 text-white' />
                 </div>
                 {isExcellent && (
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.3, 1],
-                      rotate: [0, 10, -10, 0]
+                      rotate: [0, 10, -10, 0],
                     }}
                     transition={{
                       duration: 2,
                       repeat: Infinity,
-                      repeatType: "reverse"
+                      repeatType: "reverse",
                     }}
-                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2"
+                    className='absolute -top-1 -right-1 sm:-top-2 sm:-right-2'
                   >
-                    <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-yellow-500" />
+                    <Sparkles className='w-5 h-5 sm:w-8 sm:h-8 text-yellow-500' />
                   </motion.div>
                 )}
               </div>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <CardTitle className="text-xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-3">
-                {isExcellent ? "Excellent Work! 🎉" : isGood ? "Good Job! 👏" : "Keep Practicing! 💪"}
+              <CardTitle className='text-xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-3'>
+                {isExcellent
+                  ? "Excellent Work! 🎉"
+                  : isGood
+                    ? "Good Job! 👏"
+                    : "Keep Practicing! 💪"}
               </CardTitle>
-              <p className="text-gray-600 text-sm sm:text-base">
-                {isExcellent 
+              <p className='text-gray-600 text-sm sm:text-base'>
+                {isExcellent
                   ? "You're well-prepared for the citizenship test!"
-                  : isGood 
+                  : isGood
                     ? "You're on the right track!"
                     : "Practice makes perfect!"}
               </p>
             </motion.div>
           </CardHeader>
-          
-          <CardContent className="relative z-10 px-4 sm:px-6 pb-6 sm:pb-8">
+
+          <CardContent className='relative z-10 px-4 sm:px-6 pb-6 sm:pb-8'>
             {/* Stats Cards */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8"
+              className='grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8'
             >
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
-                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">Score</div>
-                <div className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent leading-tight">
+              <div className='bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center'>
+                <div className='text-sm sm:text-base font-semibold text-gray-600 mb-2'>
+                  Score
+                </div>
+                <div className='text-2xl sm:text-4xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent leading-tight'>
                   {score}/{quiz.length}
                 </div>
-                <div className="text-sm sm:text-lg font-semibold text-gray-700 mt-1">
+                <div className='text-sm sm:text-lg font-semibold text-gray-700 mt-1'>
                   {percentage}%
                 </div>
               </div>
-              
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
-                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">Time</div>
-                <div className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent leading-tight">
+
+              <div className='bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center'>
+                <div className='text-sm sm:text-base font-semibold text-gray-600 mb-2'>
+                  Time
+                </div>
+                <div className='text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent leading-tight'>
                   {formatTime(seconds)}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-500 mt-1">
+                <div className='text-xs sm:text-sm text-gray-500 mt-1'>
                   mm:ss
                 </div>
               </div>
-              
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center">
-                <div className="text-sm sm:text-base font-semibold text-gray-600 mb-2">{percentage}%</div>
-                <div className={`text-2xl sm:text-4xl font-bold leading-tight ${
-                  isExcellent 
-                    ? "text-green-600"
-                    : isGood
-                      ? "text-yellow-600"
-                      : "text-red-600"
-                }`}>
+
+              <div className='bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 min-w-0 flex flex-col items-center justify-center'>
+                <div className='text-sm sm:text-base font-semibold text-gray-600 mb-2'>
+                  {percentage}%
+                </div>
+                <div
+                  className={`text-2xl sm:text-4xl font-bold leading-tight ${
+                    isExcellent
+                      ? "text-green-600"
+                      : isGood
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                  }`}
+                >
                   {isExcellent ? "🎉" : isGood ? "👍" : "💪"}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-500 mt-1 text-center">
+                <div className='text-xs sm:text-sm text-gray-500 mt-1 text-center'>
                   {isExcellent ? "Excellent" : isGood ? "Good" : "Practice"}
                 </div>
               </div>
@@ -624,51 +638,71 @@ export default function QuizPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md sm:shadow-lg border border-gray-100 mb-4 sm:mb-6"
+              className='bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md sm:shadow-lg border border-gray-100 mb-4 sm:mb-6'
             >
-              <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800">Performance Level</h3>
-                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                  isExcellent 
-                    ? "bg-green-100 text-green-700"
+              <div className='flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2'>
+                <h3 className='text-base sm:text-lg font-semibold text-gray-800'>
+                  Performance Level
+                </h3>
+                <span
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                    isExcellent
+                      ? "bg-green-100 text-green-700"
+                      : isGood
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {isExcellent
+                    ? "Advanced"
                     : isGood
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                }`}>
-                  {isExcellent ? "Advanced" : isGood ? "Intermediate" : "Beginner"}
+                      ? "Intermediate"
+                      : "Beginner"}
                 </span>
               </div>
-              
-              <div className="mb-3 sm:mb-4">
-                <div className="h-3 sm:h-4 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div 
+
+              <div className='mb-3 sm:mb-4'>
+                <div className='h-3 sm:h-4 w-full bg-gray-200 rounded-full overflow-hidden'>
+                  <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
                     transition={{ duration: 1.5, delay: 0.7, ease: "easeOut" }}
                     className={`h-full rounded-full ${
-                      isExcellent 
-                        ? "bg-gradient-to-r from-green-500 to-emerald-500" 
-                        : isGood 
-                          ? "bg-gradient-to-r from-yellow-500 to-orange-500" 
+                      isExcellent
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                        : isGood
+                          ? "bg-gradient-to-r from-yellow-500 to-orange-500"
                           : "bg-gradient-to-r from-red-500 to-pink-500"
                     }`}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1 sm:mt-2">
+                <div className='flex justify-between text-xs text-gray-500 mt-1 sm:mt-2'>
                   <span>0%</span>
-                  <span className="hidden sm:inline">50%</span>
+                  <span className='hidden sm:inline'>50%</span>
                   <span>70%</span>
                   <span>100%</span>
                 </div>
               </div>
-              
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+
+              <p className='text-sm sm:text-base text-gray-700 leading-relaxed'>
                 {isExcellent ? (
-                  <>Great job! You&apos;ve demonstrated excellent knowledge of Canadian citizenship materials. You&apos;re ready for the real test!</>
+                  <>
+                    Great job! You&apos;ve demonstrated excellent knowledge of
+                    Canadian citizenship materials. You&apos;re ready for the
+                    real test!
+                  </>
                 ) : isGood ? (
-                  <>Good effort! You&apos;re making solid progress. With a bit more study, you&apos;ll be fully prepared for the citizenship test.</>
+                  <>
+                    Good effort! You&apos;re making solid progress. With a bit
+                    more study, you&apos;ll be fully prepared for the
+                    citizenship test.
+                  </>
                 ) : (
-                  <>This is a great start! We recommend reviewing the study materials and practicing more to improve your score. You&apos;ve got this!</>
+                  <>
+                    This is a great start! We recommend reviewing the study
+                    materials and practicing more to improve your score.
+                    You&apos;ve got this!
+                  </>
                 )}
               </p>
             </motion.div>
@@ -678,75 +712,166 @@ export default function QuizPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="flex flex-col gap-2 sm:gap-3"
+              className='flex flex-col gap-2 sm:gap-3'
             >
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full"
-              >
-                <Button 
-                  onClick={() => setShowSummary(true)}
-                  className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold"
-                  size="lg"
-                >
-                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-                  View Detailed Summary
-                </Button>
-              </motion.div>
-              
-              {(userData?.has_active_payment || canStartFreeTest()) && (
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full"
-                >
-                  <Button
-                    onClick={() => window.location.reload()}
-                    className={`${
-                      userData?.has_active_payment 
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white' 
-                        : 'bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200'
-                    } px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold`}
-                    size="lg"
-                  >
-                    <RefreshCcw className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="truncate">{userData?.has_active_payment ? 'Start New Test' : `Try Again (${remainingFreeTests()} left)`}</span>
-                  </Button>
-                </motion.div>
-              )}
-              
-              {!userData?.has_active_payment && (
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full"
-                >
-                  <Link href="/payment-plan" className="block w-full">
-                    <Button className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold" size="lg">
-                      <Crown className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Upgrade to Premium
-                    </Button>
-                  </Link>
-                </motion.div>
-              )}
+              {(() => {
+                const isSignedIn = !!userId // <-- change this to your real check
+                const isPremium = !!userData?.has_active_payment
+                const freeLeft = remainingFreeTests()
+                const canRetry = isPremium || canStartFreeTest()
+
+                // Helpers
+                const startNewTest = () => {
+                  // Better than reload; replace with your route if you have one
+                  // router.push('/practice-tests') or router.refresh() etc.
+                  window.location.reload()
+                }
+
+                const openSignup = () => {
+                  // open modal or route to /signup
+                  // router.push('/signup?next=/results')
+                }
+
+                return (
+                  <>
+                    {/* ===== LOGGED OUT: Optimize for signup ===== */}
+                    {!isSignedIn ? (
+                      <>
+                        {/* 1) Primary CTA: Signup */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className='w-full'
+                        >
+                          <Button
+                            onClick={openSignup}
+                            className='bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold'
+                            size='lg'
+                          >
+                            Create free account to save results + unlock more
+                            tests
+                          </Button>
+                          <div className='mt-1 text-center text-xs text-gray-500'>
+                            Takes ~10 seconds • No credit card
+                          </div>
+                        </motion.div>
+
+                        {/* 2) Secondary CTA: Summary preview */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className='w-full'
+                        >
+                          <Button
+                            onClick={() => setShowSummary(true)}
+                            className='bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold'
+                            size='lg'
+                          >
+                            <Trophy className='w-4 h-4 sm:w-5 sm:h-5' />
+                            Preview detailed summary
+                          </Button>
+                        </motion.div>
+
+                        {/* Links (not buttons) */}
+                        <div className='mt-1 flex flex-col items-center gap-2 text-sm'>
+                          {/* Try again as a link ONLY if available */}
+                          {canRetry ? (
+                            <button
+                              onClick={startNewTest}
+                              className='text-gray-600 hover:text-gray-900 underline'
+                            >
+                              Try again ({freeLeft} left)
+                            </button>
+                          ) : (
+                            <button
+                              onClick={openSignup}
+                              className='text-gray-600 hover:text-gray-900 underline'
+                            >
+                              Start another test (free with account)
+                            </button>
+                          )}
+
+                          <Link
+                            href='/payment-plan'
+                            className='text-gray-600 hover:text-gray-900 underline'
+                          >
+                            See Premium features
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      /* ===== SIGNED IN: Keep it simple ===== */
+                      <>
+                        {/* Primary: Start new test */}
+                        {(isPremium || canStartFreeTest()) && (
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className='w-full'
+                          >
+                            <Button
+                              onClick={startNewTest}
+                              className='bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold'
+                              size='lg'
+                            >
+                              <RefreshCcw className='w-4 h-4 sm:w-5 sm:h-5' />
+                              Start New Test
+                            </Button>
+                          </motion.div>
+                        )}
+
+                        {/* Secondary: Summary */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className='w-full'
+                        >
+                          <Button
+                            onClick={() => setShowSummary(true)}
+                            className='bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center gap-2 w-full text-sm sm:text-base font-semibold'
+                            size='lg'
+                          >
+                            <Trophy className='w-4 h-4 sm:w-5 sm:h-5' />
+                            View Detailed Summary
+                          </Button>
+                        </motion.div>
+
+                        {/* Premium as link (not a big button) */}
+                        {!isPremium && (
+                          <div className='mt-1 text-center text-sm'>
+                            <Link
+                              href='/payment-plan'
+                              className='text-gray-600 hover:text-gray-900 underline'
+                            >
+                              See Premium features
+                            </Link>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )
+              })()}
             </motion.div>
 
             {!userData?.has_active_payment && !canStartFreeTest() && (
-              <p className="text-center text-gray-600 mt-3 sm:mt-4 text-xs sm:text-sm">You&apos;ve used all {FREE_TEST_LIMIT} free tests. Upgrade to continue practicing!</p>
+              <p className='text-center text-gray-600 mt-3 sm:mt-4 text-xs sm:text-sm'>
+                You&apos;ve used all {FREE_TEST_LIMIT} free tests. Upgrade to
+                continue practicing!
+              </p>
             )}
-            
+
             <SignedOut>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="mt-2 sm:mt-3"
+                className='mt-2 sm:mt-3'
               >
-                <Link href="/sign-up" className="block w-full">
-                  <Button 
-                    variant="outline" 
-                    className="px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl border-2 border-red-200 hover:bg-red-50 hover:border-red-300 w-full text-sm sm:text-base font-semibold"
-                    size="lg"
+                <Link href='/sign-up' className='block w-full'>
+                  <Button
+                    variant='outline'
+                    className='px-4 sm:px-6 py-4 sm:py-6 rounded-lg sm:rounded-xl border-2 border-red-200 hover:bg-red-50 hover:border-red-300 w-full text-sm sm:text-base font-semibold'
+                    size='lg'
                   >
                     Sign Up for More Access
                   </Button>
@@ -758,73 +883,87 @@ export default function QuizPage() {
 
         {/* Quiz Summary Modal */}
         {showSummary && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl p-6 max-w-3xl w-full mx-auto max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+              className='bg-white rounded-2xl p-6 max-w-3xl w-full mx-auto max-h-[85vh] overflow-hidden flex flex-col shadow-2xl'
             >
-              <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <div className='flex justify-between items-center mb-6 pb-4 border-b border-gray-200'>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">Quiz Summary</h2>
-                  <p className="text-sm text-gray-500 mt-1">Review your answers and learn from mistakes</p>
+                  <h2 className='text-2xl font-bold text-gray-800'>
+                    Quiz Summary
+                  </h2>
+                  <p className='text-sm text-gray-500 mt-1'>
+                    Review your answers and learn from mistakes
+                  </p>
                 </div>
                 <Button
-                  variant="ghost"
-                  size="icon"
+                  variant='ghost'
+                  size='icon'
                   onClick={() => setShowSummary(false)}
-                  className="rounded-full hover:bg-gray-100"
+                  className='rounded-full hover:bg-gray-100'
                 >
-                  <XCircle className="w-6 h-6 text-gray-500" />
+                  <XCircle className='w-6 h-6 text-gray-500' />
                 </Button>
               </div>
-              
-              <div className="overflow-y-auto flex-1 pr-2">
-                <div className="space-y-4">
+
+              <div className='overflow-y-auto flex-1 pr-2'>
+                <div className='space-y-4'>
                   {quiz.map((question, index) => {
-                    const userAnswer = userAnswers[index];
-                    const isCorrect = answerResults[index];
-                    
+                    const userAnswer = userAnswers[index]
+                    const isCorrect = answerResults[index]
+
                     return (
-                      <motion.div 
-                        key={index} 
+                      <motion.div
+                        key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
                         className={`p-4 rounded-xl border-2 ${
-                          isCorrect 
-                            ? "bg-green-50 border-green-200" 
+                          isCorrect
+                            ? "bg-green-50 border-green-200"
                             : "bg-red-50 border-red-200"
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isCorrect ? "bg-green-500" : "bg-red-500"
-                          }`}>
+                        <div className='flex items-start gap-3'>
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              isCorrect ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          >
                             {isCorrect ? (
-                              <CheckCircle className="w-5 h-5 text-white" />
+                              <CheckCircle className='w-5 h-5 text-white' />
                             ) : (
-                              <XCircle className="w-5 h-5 text-white" />
+                              <XCircle className='w-5 h-5 text-white' />
                             )}
                           </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-800 mb-2">
+                          <div className='flex-1'>
+                            <p className='font-semibold text-gray-800 mb-2'>
                               Q{index + 1}: {question.question}
                             </p>
-                            <div className="space-y-1">
-                              <p className={`text-sm font-medium ${
-                                isCorrect ? "text-green-700" : "text-red-700"
-                              }`}>
-                                Your answer: {question.type === "true_false" 
-                                  ? (userAnswer ? "True" : "False")
+                            <div className='space-y-1'>
+                              <p
+                                className={`text-sm font-medium ${
+                                  isCorrect ? "text-green-700" : "text-red-700"
+                                }`}
+                              >
+                                Your answer:{" "}
+                                {question.type === "true_false"
+                                  ? userAnswer
+                                    ? "True"
+                                    : "False"
                                   : userAnswer}
                               </p>
                               {!isCorrect && (
-                                <p className="text-sm font-medium text-green-700 flex items-center gap-1">
-                                  <CheckCircle className="w-4 h-4" />
-                                  Correct answer: {question.type === "true_false" 
-                                    ? (question.answer ? "True" : "False")
+                                <p className='text-sm font-medium text-green-700 flex items-center gap-1'>
+                                  <CheckCircle className='w-4 h-4' />
+                                  Correct answer:{" "}
+                                  {question.type === "true_false"
+                                    ? question.answer
+                                      ? "True"
+                                      : "False"
                                     : question.answer}
                                 </p>
                               )}
@@ -832,7 +971,7 @@ export default function QuizPage() {
                           </div>
                         </div>
                       </motion.div>
-                    );
+                    )
                   })}
                 </div>
               </div>
@@ -840,7 +979,7 @@ export default function QuizPage() {
           </div>
         )}
       </motion.div>
-    );
+    )
   };
 
   const renderQuizQuestion = () => {
