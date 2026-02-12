@@ -729,7 +729,7 @@ export default function QuizPage() {
 
                 const openSignup = () => {
                   // open modal or route to /signup
-                  // router.push('/signup?next=/results')
+                  router.push("/sign-up")
                 }
 
                 return (
@@ -861,7 +861,7 @@ export default function QuizPage() {
               </p>
             )}
 
-            <SignedOut>
+            {/* <SignedOut>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -877,7 +877,7 @@ export default function QuizPage() {
                   </Button>
                 </Link>
               </motion.div>
-            </SignedOut>
+            </SignedOut> */}
           </CardContent>
         </Card>
 
