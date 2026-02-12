@@ -190,7 +190,7 @@ function ThankYouContent() {
                   >
                     cancitizenshiptest@gmail.com
                   </a>
-                  {" "}for a 30% discount on our 7-day or 30-day plans!
+                  {" "}for a 30% discount on our $29 or $39 plans!
                 </>
               )}
             </motion.p>
@@ -333,14 +333,14 @@ function ThankYouContent() {
                       30% OFF
                     </div>
                     <div className="text-lg text-gray-600 mb-4">
-                      Available for both our <span className="font-bold text-blue-600">7-day</span> and <span className="font-bold text-blue-600">30-day</span> plans
+                      Available for both our <span className="font-bold text-blue-600">$29</span> and <span className="font-bold text-blue-600">$39</span> plans
                     </div>
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <a 
-                        href="mailto:cancitizenshiptest@gmail.com?subject=30% Discount Request - Canadian Citizenship Test&body=Hi, I was interested in the premium plan but cancelled my payment. Could you please provide me with the 30% discount for the 7-day or 30-day plan mentioned on your website?"
+                        href="mailto:cancitizenshiptest@gmail.com?subject=30% Discount Request - Canadian Citizenship Test&body=Hi, I was interested in the premium plan but cancelled my payment. Could you please provide me with the 30% discount for the $29 or $39 plan mentioned on your website?"
                         className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
                       >
                         📧 Contact for 30% Discount
